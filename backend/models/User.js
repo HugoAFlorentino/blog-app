@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema(
   {
-    user: {
+    username: {
       type: String,
       trim: true,
       required: [true, 'Username is required'],
@@ -13,11 +13,17 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       unique: true,
       required: [true, 'Email is required'],
+      match: [/\S+@\S+\.\S+/, 'Email is invalid'],
     },
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: 6,
+      minlength: [6, 'Password must be at least 6 characters'],
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
     },
   },
   { timestamps: true }
