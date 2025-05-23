@@ -61,3 +61,58 @@ export const createUser = async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 };
+
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and Password required' });
+  }
+
+  try {
+    const existingUser = await User.findOne({ email });
+
+    if (!existingUser) {
+      return res.status(404).json({ error: 'User does not exist' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const accessToken = jwt.sign({ id: existingUser._id }, ACCESS_SECRET, {
+      expiresIn: '15m',
+    });
+
+    const refreshToken = jwt.sign({ id: existingUser._id }, REFRESH_SECRET, {
+      expiresIn: '7d',
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          id: existingUser._id,
+          username: existingUser.username,
+          email: existingUser.email,
+        },
+        accessToken,
+      },
+    });
+  } catch (error) {
+    console.error('Login failed:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
