@@ -1,13 +1,22 @@
-import daisyui from 'daisyui';
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  daisyui: {
-    themes: ['light', 'dark', 'cupcake'],
-  },
+  darkMode: 'class', // enable dark mode toggle via "dark" class
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: 'var(--color-primary)',
+        secondary: 'var(--color-secondary)',
+        accent: 'var(--color-accent)',
+        neutral: 'var(--color-neutral)',
+        background: 'var(--color-background)',
+        text: 'var(--color-text)',
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        heading: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+    },
   },
-  plugins: [daisyui],
+  plugins: [],
 };

@@ -2,4 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-@plugin "daisyui";
+/* Default Light Theme */
+:root {
+  --color-primary: #ffa725;
+  --color-secondary: #6b7280;
+  --color-accent: #d84040;
+  --color-neutral: #f9fafb;
+  --color-background: #efefef;
+  --color-text: #111827;
+}
+
+/* Dark Theme */
+.dark {
+  --color-primary: #ffb22c;
+  --color-secondary: #9ca3af;
+  --color-accent: #d84040;
+  --color-neutral: #374151;
+  --color-background: #121212;
+  --color-text: #f3f4f6;
+}
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+}
