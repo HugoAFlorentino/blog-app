@@ -64,7 +64,7 @@ const Navbar = () => {
 
   return (
     <header
-      className={`bg-background text-text shadow-md fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+      className={`bg-background text-text shadow-md fixed top-0 left-0 right-0 z-50 transition-transform duration-300 px-4 ${
         showNavbar ? 'translate-y-0' : '-translate-y-full'
       }`}
     >

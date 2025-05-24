@@ -38,3 +38,10 @@ h6 {
 html {
   overflow-y: scroll;
 }
+
+html,
+body,
+#root,
+.min-h-screen {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
