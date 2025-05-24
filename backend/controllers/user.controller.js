@@ -116,3 +116,43 @@ export const loginUser = async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 };
+
+export const refreshToken = async (req, res) => {
+  const token = req.cookies.refreshToken;
+
+  if (!token) {
+    return res.status(401).json({ error: 'No refresh token' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, REFRESH_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const newAccessToken = jwt.sign({ id: user._id }, ACCESS_SECRET, {
+      expiresIn: '15m',
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        user,
+        accessToken: newAccessToken,
+      },
+    });
+  } catch (err) {
+    return res.status(403).json({ error: 'Invalid refresh token' });
+  }
+};
+
+export const logoutUser = (req, res) => {
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: NODE_ENV === 'production',
+    sameSite: 'Strict',
+  });
+  res.status(200).json({ message: 'Logged out successfully' });
+};
