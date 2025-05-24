@@ -1,55 +1,35 @@
-import { Link, useNavigate } from 'react-router-dom';
-import api from '../utils/axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate, Link } from 'react-router-dom';
+import { signInUser } from '../redux/userSlice';
 
 const SignIn = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { currentUser, loading, error } = useSelector((state) => state.user);
 
-  function handleChange(e) {
+  // Redirect if already logged in
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
+
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
     });
-    setError(null);
-  }
+  };
 
-  async function handleSubmit(e) {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Make the API call
-      const response = await api.post('/users/signin', formData, {
-        withCredentials: true, // Important to send/receive cookies
-      });
-
-      // Extract the access token and user info
-      const { accessToken, user } = response.data.data;
-
-      // Store accessToken securely (sessionStorage is okay for access tokens)
-      sessionStorage.setItem('accessToken', accessToken);
-
-      // Optionally store user info too
-      sessionStorage.setItem('user', JSON.stringify(user));
-
-      // Navigate to dashboard or home
-      navigate('/'); // or '/' or whatever your main page is
-    } catch (err) {
-      if (err.response) {
-        setError(err.response.data.error || 'Login failed. Please try again.');
-      } else if (err.request) {
-        setError('Network error, please check your connection.');
-      } else {
-        setError('An unexpected error occurred.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
+    dispatch(signInUser(formData))
+      .unwrap()
+      .then(() => navigate('/'))
+      .catch(() => {});
+  };
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-background text-text px-4'>
@@ -57,7 +37,6 @@ const SignIn = () => {
         <h2 className='text-2xl font-semibold mb-6 text-center'>Sign In</h2>
 
         <form className='space-y-5' onSubmit={handleSubmit}>
-          {/* Email */}
           <div>
             <label htmlFor='email' className='block mb-1 font-medium'>
               Email
@@ -74,7 +53,6 @@ const SignIn = () => {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label htmlFor='password' className='block mb-1 font-medium'>
               Password
@@ -93,7 +71,6 @@ const SignIn = () => {
 
           {error && <p className='text-red-500 text-sm mt-2'>{error}</p>}
 
-          {/* Submit Button */}
           <button
             type='submit'
             className='w-full bg-primary text-white py-2 rounded hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
@@ -125,7 +102,6 @@ const SignIn = () => {
           </button>
         </form>
 
-        {/* Optional links */}
         <div className='mt-4 text-sm text-center'>
           <Link to='#' className='text-accent hover:underline'>
             Forgot password?

@@ -34,3 +34,7 @@ h5,
 h6 {
   font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
 }
+
+html {
+  overflow-y: scroll;
+}

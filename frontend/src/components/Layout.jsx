@@ -3,9 +3,11 @@ import Navbar from './Navbar';
 
 const Layout = () => {
   return (
-    <div className='min-h-screen bg-background text-text transition-colors duration-300'>
+    <div className='min-h-screen bg-background text-text transition-colors duration-300 '>
       <Navbar />
-      <main className='p-4'>
+      <main className='pt-16'>
+        {' '}
+        {/* Adjust if needed */}
         <Outlet />
       </main>
     </div>

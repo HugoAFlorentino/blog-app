@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import api from '../utils/axios';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { signUpUser } from '../redux/userSlice';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -8,37 +9,28 @@ const SignUp = () => {
     email: '',
     password: '',
   });
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const { currentUser, loading, error } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
     });
-    setError(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      await api.post('/users/signup', formData);
-      navigate('/');
-    } catch (err) {
-      if (err.response) {
-        setError(err.response.data.message || 'Failed to create user');
-      } else if (err.request) {
-        setError('Network error, please try again.');
-      } else {
-        setError('An unexpected error occurred.');
-      }
-    } finally {
-      setLoading(false);
-    }
+    dispatch(signUpUser(formData));
   };
 
   return (
@@ -50,7 +42,7 @@ const SignUp = () => {
           {/* USERNAME */}
           <div>
             <label htmlFor='username' className='block mb-1 font-medium'>
-              USERNAME
+              Username
             </label>
             <input
               type='text'
@@ -98,6 +90,7 @@ const SignUp = () => {
             />
           </div>
 
+          {/* Error Message */}
           {error && <p className='text-red-500 text-sm mt-2'>{error}</p>}
 
           {/* Submit Button */}
