@@ -4,8 +4,10 @@ import db_connection from './database/mongoose.connect.js';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import helmet from 'helmet';
 
 import userRouter from './routes/usersRoutes.js';
+import blogRouter from './routes/blogRoutes.js';
 
 const app = express();
 
@@ -14,6 +16,7 @@ const allowedOrigins = ['http://localhost:5173', 'http://localhost:4000'];
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(helmet());
 
 app.use(
   cors({
@@ -30,6 +33,7 @@ app.use(
 );
 
 app.use('/api/v1', userRouter);
+app.use('/api/v1', blogRouter);
 
 app.listen(PORT, () => {
   console.log(`server is running at port: ${PORT}`);

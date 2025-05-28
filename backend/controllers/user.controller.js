@@ -15,7 +15,7 @@ export const createUser = async (req, res) => {
   }
 
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email, isDeleted: false });
     if (existingUser) {
       return res.status(409).json({ error: 'User already exists' });
     }
@@ -70,7 +70,7 @@ export const loginUser = async (req, res) => {
   }
 
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email, isDeleted: false });
 
     if (!existingUser) {
       return res.status(404).json({ error: 'User does not exist' });
@@ -117,6 +117,45 @@ export const loginUser = async (req, res) => {
   }
 };
 
+export const updateUser = async (req, res) => {
+  const { username, email } = req.body;
+  const userId = req.user.id;
+
+  if (!username || !email) {
+    return res.status(400).json({ error: 'All fields must be provided' });
+  }
+
+  try {
+    const emailTaken = await User.findOne({ email, _id: { $ne: userId } });
+    if (emailTaken) {
+      return res.status(409).json({ error: 'Email is already in use' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { username, email },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      data: {
+        id: updatedUser._id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+      },
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export const refreshToken = async (req, res) => {
   const token = req.cookies.refreshToken;
 
@@ -126,7 +165,11 @@ export const refreshToken = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, REFRESH_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
+
+    const user = await User.findOne({
+      _id: decoded.id,
+      isDeleted: false,
+    }).select('-password');
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -147,6 +190,7 @@ export const refreshToken = async (req, res) => {
     return res.status(403).json({ error: 'Invalid refresh token' });
   }
 };
+0;
 
 export const logoutUser = (req, res) => {
   res.clearCookie('refreshToken', {
