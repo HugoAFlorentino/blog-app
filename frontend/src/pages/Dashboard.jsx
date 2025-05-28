@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Dashboard = () => {
   return (
     <div className='min-h-screen bg-background text-text p-8'>

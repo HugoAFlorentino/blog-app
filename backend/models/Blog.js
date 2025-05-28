@@ -16,9 +16,19 @@ const blogSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
+
+blogSchema.index({ title: 1, body: 1 }, { unique: true });
 
 const Blog = mongoose.model('Blog', blogSchema);
 
