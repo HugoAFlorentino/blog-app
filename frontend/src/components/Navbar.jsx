@@ -89,7 +89,7 @@ const Navbar = () => {
         showNavbar ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
-      <nav className='max-w-7xl mx-auto px-4 py-3 flex items-center justify-between'>
+      <nav className='max-w-7xl mx-auto px-12 py-3 flex items-center justify-between'>
         <Link to='/' className='text-xl font-bold text-primary'>
           BlogApp
         </Link>
