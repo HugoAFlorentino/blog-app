@@ -45,7 +45,7 @@ export const refreshUser = createAsyncThunk(
       return res.data.data.user;
     } catch (err) {
       if (err.response?.status === 401) {
-        return null; // User not authenticated
+        return thunkAPI.rejectWithValue('Not authenticated');
       }
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || err.message
@@ -186,7 +186,6 @@ const userSlice = createSlice({
       .addCase(refreshUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.currentUser = null;
       })
 
       // logoutUser

@@ -48,12 +48,10 @@ const App = () => {
   const currentUser = useSelector((state) => state.user.currentUser);
 
   useEffect(() => {
-    const loggedInFlag = localStorage.getItem('loggedIn');
-    if (!currentUser && loggedInFlag) {
+    if (!currentUser) {
       dispatch(refreshUser())
         .unwrap()
         .catch(() => {
-          localStorage.removeItem('loggedIn');
           dispatch(logoutUser());
         });
     }
