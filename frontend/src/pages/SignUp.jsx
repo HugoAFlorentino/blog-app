@@ -126,11 +126,6 @@ const SignUp = () => {
         </form>
 
         {/* Optional links */}
-        <div className='mt-4 text-sm text-center'>
-          <Link to='#' className='text-accent hover:underline'>
-            Forgot password?
-          </Link>
-        </div>
 
         <div className='mt-2 text-sm text-center'>
           Already have an account?{' '}
