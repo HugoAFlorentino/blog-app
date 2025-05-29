@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../redux/userSlice';
@@ -13,8 +13,11 @@ const Navbar = () => {
   const [showNavbar, setShowNavbar] = useState(true);
   const lastScrollY = useRef(0);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
+
   const userMenuRef = useRef();
+  const menuRef = useRef();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -25,10 +28,8 @@ const Navbar = () => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
-        // scrolling down -> hide navbar
         setShowNavbar(false);
       } else {
-        // scrolling up -> show navbar
         setShowNavbar(true);
       }
       lastScrollY.current = currentScrollY;
@@ -39,16 +40,36 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close dropdown if clicked outside
+  // Close user menu if clicked outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClickOutsideUserMenu = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setUserMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutsideUserMenu);
+    return () =>
+      document.removeEventListener('mousedown', handleClickOutsideUserMenu);
   }, []);
+
+  // Close mobile menu if clicked outside
+  useEffect(() => {
+    const handleClickOutsideMenu = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutsideMenu);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutsideMenu);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideMenu);
+    };
+  }, [menuOpen]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -69,7 +90,6 @@ const Navbar = () => {
       }`}
     >
       <nav className='max-w-7xl mx-auto px-4 py-3 flex items-center justify-between'>
-        {/* Your existing nav code */}
         <Link to='/' className='text-xl font-bold text-primary'>
           BlogApp
         </Link>
@@ -106,14 +126,14 @@ const Navbar = () => {
                   <Link
                     to='/dashboard'
                     onClick={() => setUserMenuOpen(false)}
-                    className='block px-4 py-2 hover:bg-primary/10 transition'
+                    className='block px-4 py-2 hover:bg-primary transition'
                   >
                     Dashboard
                   </Link>
                   <Link
                     to='/settings'
                     onClick={() => setUserMenuOpen(false)}
-                    className='block px-4 py-2 hover:bg-primary/10 transition'
+                    className='block px-4 py-2 hover:bg-primary transition'
                   >
                     Settings
                   </Link>
@@ -121,8 +141,9 @@ const Navbar = () => {
                     onClick={() => {
                       dispatch(logoutUser());
                       setUserMenuOpen(false);
+                      navigate('/');
                     }}
-                    className='block w-full text-left px-4 py-2 hover:bg-red-200/20 transition'
+                    className='block w-full text-left px-4 py-2 hover:bg-red-500 transition'
                   >
                     Logout
                   </button>
@@ -156,7 +177,7 @@ const Navbar = () => {
       </nav>
 
       {menuOpen && (
-        <div className='md:hidden px-4 pb-4 space-y-3'>
+        <div ref={menuRef} className='md:hidden px-4 pb-4 space-y-3'>
           <Link to='/' onClick={closeMenu} className='block hover:text-primary'>
             Home
           </Link>
@@ -175,9 +196,41 @@ const Navbar = () => {
             Create
           </Link>
           {currentUser ? (
-            <p className='hover:text-primary transition'>
-              {currentUser?.username || 'Guest'}
-            </p>
+            <div className='relative' ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+                className='hover:text-primary transition font-semibold'
+              >
+                {currentUser?.username || 'Guest'} ▼
+              </button>
+              {userMenuOpen && (
+                <div className='absolute left-0 mt-2 w-40 bg-neutral text-text rounded shadow-md z-20'>
+                  <Link
+                    to='/dashboard'
+                    onClick={() => setUserMenuOpen(false)}
+                    className='block px-4 py-2 hover:bg-primary transition'
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to='/settings'
+                    onClick={() => setUserMenuOpen(false)}
+                    className='block px-4 py-2 hover:bg-primary transition'
+                  >
+                    Settings
+                  </Link>
+                  <button
+                    onClick={() => {
+                      dispatch(logoutUser());
+                      setUserMenuOpen(false);
+                    }}
+                    className='block w-full text-left px-4 py-2 hover:bg-red-500 transition'
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <Link
               to='/signin'
