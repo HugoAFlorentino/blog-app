@@ -9,6 +9,22 @@ import {
 } from '../config/env.config.js';
 import sendEmail from '../utils/sendEmail.js';
 
+// Helper to set access & refresh token cookies
+const setAuthCookies = (res, accessToken, refreshToken) => {
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  });
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+};
+
 // CREATE USER
 export const createUser = async (req, res) => {
   const { username, email, password } = req.body;
@@ -40,12 +56,7 @@ export const createUser = async (req, res) => {
       expiresIn: '7d',
     });
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(201).json({
       success: true,
@@ -56,7 +67,6 @@ export const createUser = async (req, res) => {
           username: newUser.username,
           email: newUser.email,
         },
-        accessToken,
       },
     });
   } catch (error) {
@@ -96,12 +106,7 @@ export const loginUser = async (req, res) => {
       expiresIn: '7d',
     });
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(200).json({
       success: true,
@@ -112,7 +117,6 @@ export const loginUser = async (req, res) => {
           username: existingUser.username,
           email: existingUser.email,
         },
-        accessToken,
       },
     });
   } catch (error) {
@@ -185,25 +189,36 @@ export const refreshToken = async (req, res) => {
       expiresIn: '15m',
     });
 
+    // Send new access token as cookie
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000,
+    });
+
     return res.status(200).json({
       success: true,
       data: {
         user,
-        accessToken: newAccessToken,
       },
     });
   } catch (err) {
     return res.status(403).json({ error: 'Invalid refresh token' });
   }
 };
-0;
 
 // LOGOUT
 export const logoutUser = (req, res) => {
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'Strict',
+    sameSite: 'strict',
+  });
+  res.clearCookie('accessToken', {
+    httpOnly: true,
+    secure: NODE_ENV === 'production',
+    sameSite: 'strict',
   });
   res.status(200).json({ message: 'Logged out successfully' });
 };
@@ -223,7 +238,7 @@ export const forgotPassword = async (req, res) => {
     const secret = ACCESS_SECRET + user.password;
     const token = jwt.sign({ id: user._id }, secret, { expiresIn: '15m' });
 
-    const link = `${process.env.FRONTEND_URL}/reset-password/${user._id}/${token}`;
+    const link = `${FRONTEND_URL}/reset-password/${user._id}/${token}`;
 
     await sendEmail(
       user.email,
@@ -245,7 +260,6 @@ export const forgotPassword = async (req, res) => {
 };
 
 // RESET PASSWORD
-
 export const resetPassword = async (req, res) => {
   const { id, token } = req.params;
   const { password } = req.body;
