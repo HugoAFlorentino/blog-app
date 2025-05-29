@@ -6,8 +6,10 @@ export const signInUser = createAsyncThunk(
   async (credentials, thunkAPI) => {
     try {
       const res = await api.post('/users/signin', credentials);
+      localStorage.setItem('loggedIn', 'true');
       return res.data.data.user;
     } catch (err) {
+      localStorage.removeItem('loggedIn');
       const message =
         err.response?.data?.message || err.message || 'Something went wrong';
       return thunkAPI.rejectWithValue(message);
@@ -20,8 +22,10 @@ export const signUpUser = createAsyncThunk(
   async (formData, thunkAPI) => {
     try {
       const res = await api.post('/users/signup', formData);
+      localStorage.setItem('loggedIn', 'true');
       return res.data.data.user;
     } catch (err) {
+      localStorage.removeItem('loggedIn');
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || err.message
       );
@@ -36,6 +40,10 @@ export const refreshUser = createAsyncThunk(
       const res = await api.get('/users/refresh', { withCredentials: true });
       return res.data.data.user;
     } catch (err) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem('loggedIn');
+        return null;
+      }
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || err.message
       );
@@ -48,9 +56,42 @@ export const logoutUser = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       await api.post('/users/logout');
+      localStorage.removeItem('loggedIn');
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || err.message
+      );
+    }
+  }
+);
+
+export const forgotPassword = createAsyncThunk(
+  'user/forgotPassword',
+  async (email, thunkAPI) => {
+    try {
+      const res = await api.post('/auth/reset-password', { email });
+      return (
+        res.data.message || 'If the email exists, a reset link has been sent.'
+      );
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || 'Something went wrong. Try again later.'
+      );
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  'user/resetPassword',
+  async ({ id, token, password }, thunkAPI) => {
+    try {
+      const res = await api.post(`/auth/reset-password/${id}/${token}`, {
+        password,
+      });
+      return res.data.message || 'Password successfully reset.';
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || 'Invalid or expired token.'
       );
     }
   }
@@ -62,6 +103,7 @@ const userSlice = createSlice({
     currentUser: null,
     loading: false,
     error: null,
+    message: null,
   },
   reducers: {
     logout: (state) => {
@@ -104,6 +146,7 @@ const userSlice = createSlice({
       .addCase(refreshUser.fulfilled, (state, action) => {
         state.loading = false;
         state.currentUser = action.payload;
+        state.error = null;
       })
       .addCase(refreshUser.rejected, (state, action) => {
         state.loading = false;
@@ -119,6 +162,34 @@ const userSlice = createSlice({
         state.currentUser = null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      }) // forgot password
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.message = action.payload;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // reset password
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(resetPassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.message = action.payload;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

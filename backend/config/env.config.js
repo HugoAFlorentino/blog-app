@@ -8,4 +8,7 @@ export const {
   ACCESS_SECRET,
   REFRESH_SECRET,
   NODE_ENV,
+  BREVO_API_KEY,
+  BREVO_SENDER_EMAIL,
+  FRONTEND_URL,
 } = process.env;

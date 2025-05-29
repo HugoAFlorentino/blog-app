@@ -5,8 +5,11 @@ import {
   ACCESS_SECRET,
   REFRESH_SECRET,
   NODE_ENV,
+  FRONTEND_URL,
 } from '../config/env.config.js';
+import sendEmail from '../utils/sendEmail.js';
 
+// CREATE USER
 export const createUser = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -62,6 +65,7 @@ export const createUser = async (req, res) => {
   }
 };
 
+// LOGIN USER
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -117,6 +121,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
+// PATCH USER
 export const updateUser = async (req, res) => {
   const { username, email } = req.body;
   const userId = req.user.id;
@@ -156,6 +161,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
+// REFRESH TOKEN
 export const refreshToken = async (req, res) => {
   const token = req.cookies.refreshToken;
 
@@ -192,6 +198,7 @@ export const refreshToken = async (req, res) => {
 };
 0;
 
+// LOGOUT
 export const logoutUser = (req, res) => {
   res.clearCookie('refreshToken', {
     httpOnly: true,
@@ -199,4 +206,65 @@ export const logoutUser = (req, res) => {
     sameSite: 'Strict',
   });
   res.status(200).json({ message: 'Logged out successfully' });
+};
+
+// PASSWORD RECOVER
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(200)
+        .json({ message: 'If that email exists, a reset link will be sent.' });
+    }
+
+    const secret = ACCESS_SECRET + user.password;
+    const token = jwt.sign({ id: user._id }, secret, { expiresIn: '15m' });
+
+    const link = `${process.env.FRONTEND_URL}/reset-password/${user._id}/${token}`;
+
+    await sendEmail(
+      user.email,
+      'Password Reset',
+      `
+      <h3>Password Reset</h3>
+      <p>Click the link below to reset your password. It expires in 15 minutes.</p>
+      <a href="${link}">${link}</a>
+    `
+    );
+
+    return res
+      .status(200)
+      .json({ message: 'If that email exists, a reset link will be sent.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
+// RESET PASSWORD
+
+export const resetPassword = async (req, res) => {
+  const { id, token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const user = await User.findById(id);
+    if (!user) return res.status(400).json({ error: 'Invalid user' });
+
+    const secret = ACCESS_SECRET + user.password;
+
+    jwt.verify(token, secret);
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+
+    await user.save();
+    res.status(200).json({ message: 'Password successfully updated' });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Invalid or expired token' });
+  }
 };

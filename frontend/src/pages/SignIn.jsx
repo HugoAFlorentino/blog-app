@@ -9,7 +9,6 @@ const SignIn = () => {
   const navigate = useNavigate();
   const { currentUser, loading, error } = useSelector((state) => state.user);
 
-  // Redirect if already logged in
   useEffect(() => {
     if (currentUser) {
       navigate('/');
@@ -103,7 +102,7 @@ const SignIn = () => {
         </form>
 
         <div className='mt-4 text-sm text-center'>
-          <Link to='#' className='text-accent hover:underline'>
+          <Link to='/forgot-password' className='text-accent hover:underline'>
             Forgot password?
           </Link>
         </div>
