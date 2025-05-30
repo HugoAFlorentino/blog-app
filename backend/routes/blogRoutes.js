@@ -2,6 +2,7 @@ import Router from 'express';
 import {
   createPost,
   deletePost,
+  getPostById,
   getPosts,
   patchPost,
 } from '../controllers/blog.controller.js';
@@ -14,5 +15,6 @@ blogRouter.post('/blog', authenticateUser, createPost);
 blogRouter.patch('/blog/:id', authenticateUser, patchPost);
 blogRouter.post('/blog/:id', authenticateUser, deletePost);
 blogRouter.get('/blog', getPosts);
+blogRouter.get('/blog/:id', getPostById);
 
 export default blogRouter;
