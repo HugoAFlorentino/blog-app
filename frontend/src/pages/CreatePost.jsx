@@ -1,28 +1,50 @@
-import React, { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { createPost, clearError, clearMessage } from '../redux/blogSlice';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const CreatePost = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { loading, error, message } = useSelector((state) => state.blogs);
+  const hasSubmitted = useRef(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (!title.trim() || !body.trim()) {
-      setError('Title and Body are required.');
-      setSuccess('');
+      toast.error('Title and Body are required');
+      dispatch(clearMessage());
       return;
     }
 
-    setError('');
-
-    setSuccess('Blog post created successfully!');
-
-    setTitle('');
-    setBody('');
+    dispatch(createPost({ title, body }));
+    hasSubmitted.current = true;
   };
+
+  useEffect(() => {
+    dispatch(clearMessage());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (message && hasSubmitted.current) {
+      setTitle('');
+      setBody('');
+      toast.success(message);
+
+      const timeout = setTimeout(() => {
+        dispatch(clearMessage());
+        navigate('/blogs');
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [message, navigate, dispatch]);
 
   return (
     <div className='max-w-3xl mx-auto px-4 md:px-0 py-12'>
@@ -31,10 +53,12 @@ const CreatePost = () => {
       </h1>
 
       {error && (
-        <div className='mb-4 p-3 bg-accent text-white rounded'>{error}</div>
-      )}
-      {success && (
-        <div className='mb-4 p-3 bg-primary text-white rounded'>{success}</div>
+        <div className='mb-4 p-3 bg-accent text-white rounded'>
+          {error}
+          <button onClick={() => dispatch(clearError())} className='ml-2'>
+            x
+          </button>
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className='space-y-6'>
@@ -76,9 +100,10 @@ const CreatePost = () => {
 
         <button
           type='submit'
+          disabled={loading}
           className='bg-primary text-white px-6 py-3 rounded font-semibold hover:bg-opacity-90 transition'
         >
-          Create Post
+          {loading ? 'Creating...' : 'Create Post'}
         </button>
       </form>
     </div>
