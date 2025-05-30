@@ -1,6 +1,39 @@
-import React from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllPosts } from '../redux/blogSlice';
+import { useParams } from 'react-router-dom';
 
 const Blogs = () => {
+  const dispatch = useDispatch();
+  const { posts, loading, error } = useSelector((state) => state.blogs);
+  const [expandedPosts, setExpandedPosts] = useState({}); // track expanded posts by id
+  const { id } = useParams();
+
+  // Refs to each post for scrolling
+  const postRefs = useRef({});
+
+  useEffect(() => {
+    dispatch(getAllPosts());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (id && postRefs.current[id]) {
+      postRefs.current[id].scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+      // Optionally expand the post when navigated to by id
+      setExpandedPosts((prev) => ({ ...prev, [id]: true }));
+    }
+  }, [id, posts]);
+
+  const toggleExpand = (postId) => {
+    setExpandedPosts((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
+  };
+
   return (
     <div className='px-4 md:px-12 max-w-7xl mx-auto py-12'>
       <div className='grid grid-cols-1 lg:grid-cols-4 gap-10'>
@@ -10,28 +43,55 @@ const Blogs = () => {
             All Blog Posts
           </h2>
 
-          {[1, 2, 3, 4, 5].map((post) => (
-            <div
-              key={post}
-              className='bg-white dark:bg-neutral p-6 rounded-lg shadow hover:shadow-md transition'
-            >
-              <h3 className='text-2xl font-heading font-semibold mb-2'>
-                Blog Post Title #{post}
-              </h3>
-              <p className='text-secondary mb-3'>
-                This is a short description of the blog post. It gives the
-                reader a quick idea of what the post is about.
-              </p>
-              <button className='text-primary font-medium hover:underline'>
-                Read More →
-              </button>
-            </div>
-          ))}
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p className='text-accent'>{error}</p>
+          ) : (
+            posts.map((post) => {
+              const isExpanded = expandedPosts[post._id];
+
+              return (
+                <div
+                  key={post._id}
+                  ref={(el) => (postRefs.current[post._id] = el)}
+                  id={post._id}
+                  className='bg-white dark:bg-neutral p-6 rounded-lg shadow hover:shadow-md transition'
+                >
+                  <h3 className='text-2xl font-heading font-semibold mb-2'>
+                    {post.title}
+                  </h3>
+
+                  <p
+                    className={`text-secondary mb-3 ${
+                      !isExpanded ? 'line-clamp-3' : ''
+                    }`}
+                  >
+                    {post.body}
+                  </p>
+
+                  <p className='text-sm text-gray-500 mb-2'>
+                    Author:{' '}
+                    <span className='font-medium'>
+                      {post.author?.username || 'Unknown'}
+                    </span>
+                  </p>
+
+                  <button
+                    onClick={() => toggleExpand(post._id)}
+                    className='text-primary font-medium hover:underline'
+                  >
+                    {isExpanded ? 'Show Less ←' : 'Read More →'}
+                  </button>
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Sidebar */}
         <aside className='space-y-6'>
-          {/* Newsletter Signup / Ad Box */}
+          {/* Newsletter Signup */}
           <div className='bg-background p-6 rounded-lg shadow'>
             <h4 className='text-xl font-heading font-semibold mb-2'>
               Subscribe to our Newsletter

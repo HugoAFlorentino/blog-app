@@ -6,11 +6,7 @@ const Layout = () => {
   return (
     <div className='min-h-screen flex flex-col bg-background text-text transition-colors duration-300'>
       <Navbar />
-<<<<<<< HEAD
-      <main className='pt-16'>
-=======
       <main className='flex-grow pt-16'>
->>>>>>> dev
         <Outlet />
       </main>
       <Footer />

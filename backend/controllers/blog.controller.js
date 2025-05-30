@@ -107,3 +107,21 @@ export const getPosts = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+export const getPostById = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ error: 'Post not found' });
+  }
+
+  try {
+    const post = await Blog.findById(id).populate('author', 'username');
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    return res.status(200).json({ success: true, data: post });
+  } catch (error) {
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
