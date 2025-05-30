@@ -1,5 +1,9 @@
-import React from 'react';
+// Import useNavigate from react-router-dom
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllPosts } from '../redux/blogSlice'; // adjust path if needed
+import { useNavigate } from 'react-router-dom';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -11,6 +15,18 @@ const fadeUp = {
 };
 
 const Landing = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { posts, loading, error } = useSelector((state) => state.blogs);
+
+  useEffect(() => {
+    dispatch(getAllPosts());
+  }, [dispatch]);
+
+  // Get last 3 posts (assuming posts sorted oldest → newest, so slice last 3 and reverse for newest first)
+  const lastThreePosts = posts.slice(-3).reverse();
+
   return (
     <div className='px-4 md:px-12 max-w-7xl mx-auto'>
       {/* Hero */}
@@ -29,6 +45,7 @@ const Landing = () => {
         <motion.button
           className='bg-white text-primary px-6 py-2 rounded-full font-semibold hover:bg-neutral transition'
           whileHover={{ scale: 1.05 }}
+          onClick={() => navigate('/blogs')}
         >
           Explore Posts
         </motion.button>
@@ -77,7 +94,10 @@ const Landing = () => {
               Explore how tools like GPT and automation are revolutionizing the
               front-end workflow for developers and designers.
             </p>
-            <button className='text-primary font-semibold hover:underline'>
+            <button
+              className='text-primary font-semibold hover:underline'
+              onClick={() => navigate('/blogs')}
+            >
               Read More →
             </button>
           </div>
@@ -89,21 +109,38 @@ const Landing = () => {
         <h3 className='text-2xl font-heading font-semibold mb-6'>
           Latest Posts
         </h3>
+
+        {loading && <p>Loading posts...</p>}
+        {error && <p className='text-red-500'>{error}</p>}
+
         <div className='grid gap-8 sm:grid-cols-2 lg:grid-cols-3'>
-          {[1, 2, 3].map((post, i) => (
+          {lastThreePosts.map((post, i) => (
             <motion.div
-              key={post}
+              key={post._id}
               className='bg-white dark:bg-neutral p-4 rounded-lg shadow hover:shadow-md transition'
               initial='hidden'
               animate='visible'
               variants={fadeUp}
               custom={0.4 + i * 0.1}
             >
-              <h4 className='text-lg font-semibold mb-2'>Post Title #{post}</h4>
-              <p className='text-sm text-secondary mb-2'>
-                Quick summary of the blog post. Hooks the user in a few lines.
+              <h4 className='text-lg font-semibold mb-2'>{post.title}</h4>
+              <p className='text-sm text-secondary mb-2 line-clamp-3'>
+                {post.body.length > 100
+                  ? post.body.substring(0, 100) + '...'
+                  : post.body}
               </p>
-              <button className='text-sm text-primary hover:underline'>
+
+              {/* Author */}
+              {post.author && (
+                <p className='text-xs text-gray-500 mb-2'>
+                  By <span className='font-medium'>{post.author.username}</span>
+                </p>
+              )}
+
+              <button
+                onClick={() => navigate(`/blogs/${post._id}`)}
+                className='text-sm text-primary hover:underline'
+              >
                 Read More →
               </button>
             </motion.div>
