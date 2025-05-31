@@ -9,7 +9,6 @@ export const signInUser = createAsyncThunk(
       const res = await api.post('/users/signin', credentials, {
         withCredentials: true,
       });
-      // Do NOT store token manually
       return res.data.data.user;
     } catch (err) {
       const message =
@@ -102,17 +101,18 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
-// Update user (PATCH /users/profile/update)
+// Update user profile
 export const updateUser = createAsyncThunk(
   'user/updateUser',
-  async ({ username, email }, thunkAPI) => {
+  async ({ username, email, isAdmin }, thunkAPI) => {
     try {
+      // Send isAdmin if needed (assuming admin only allowed this)
       const res = await api.patch(
         '/users/profile/update',
-        { username, email },
-        { withCredentials: true } // Cookies will be sent automatically
+        { username, email, isAdmin },
+        { withCredentials: true }
       );
-      return res.data.data;
+      return res.data.data; // updated user object
     } catch (err) {
       const message =
         err.response?.data?.error ||
@@ -120,6 +120,59 @@ export const updateUser = createAsyncThunk(
         err.message ||
         'Failed to update user';
       return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Change password
+export const changePassword = createAsyncThunk(
+  'user/changePassword',
+  async ({ currentPassword, newPassword }, thunkAPI) => {
+    try {
+      const res = await api.patch(
+        '/users/change-password',
+        { currentPassword, newPassword },
+        { withCredentials: true }
+      );
+      return res.data.message || 'Password changed successfully';
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || 'Failed to change password'
+      );
+    }
+  }
+);
+
+// Soft delete user by ID (admin only)
+export const deleteUser = createAsyncThunk(
+  'user/deleteUser',
+  async (id, thunkAPI) => {
+    try {
+      const res = await api.patch(`/users/delete/${id}`, null, {
+        withCredentials: true,
+      });
+      return res.data.data; // deleted user data or confirmation
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || err.message || 'Failed to delete user'
+      );
+    }
+  }
+);
+
+// Restore deleted user by ID (admin only)
+export const restoreUser = createAsyncThunk(
+  'user/restoreUser',
+  async (id, thunkAPI) => {
+    try {
+      const res = await api.patch(`/users/restore/${id}`, null, {
+        withCredentials: true,
+      });
+      return res.data.data; // restored user data
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || err.message || 'Failed to restore user'
+      );
     }
   }
 );
@@ -186,6 +239,9 @@ const userSlice = createSlice({
       .addCase(refreshUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        if (action.payload === 'Not authenticated') {
+          state.currentUser = null;
+        }
       })
 
       // logoutUser
@@ -243,6 +299,7 @@ const userSlice = createSlice({
       })
       .addCase(updateUser.fulfilled, (state, action) => {
         state.loading = false;
+        // merge updated user data, including isAdmin flag if changed
         state.currentUser = {
           ...state.currentUser,
           ...action.payload,
@@ -253,6 +310,64 @@ const userSlice = createSlice({
       .addCase(updateUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Update failed';
+      })
+
+      // changePassword
+      .addCase(changePassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.message = action.payload;
+        state.error = null;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // deleteUser (soft delete)
+      .addCase(deleteUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.message = 'User deleted successfully';
+        state.error = null;
+
+        // If currentUser is the one deleted, clear it
+        if (state.currentUser?.id === action.payload?.id) {
+          state.currentUser = null;
+        }
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to delete user';
+      })
+
+      // restoreUser
+      .addCase(restoreUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(restoreUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.message = 'User restored successfully';
+        state.error = null;
+
+        // If currentUser is the one restored, update it
+        if (state.currentUser?.id === action.payload?.id) {
+          state.currentUser = action.payload;
+        }
+      })
+      .addCase(restoreUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to restore user';
       });
   },
 });

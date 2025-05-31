@@ -74,28 +74,7 @@ export const patchPost = async (req, res) => {
   }
 };
 
-// SOFT DELETE POST
-export const deletePost = async (req, res) => {
-  try {
-    const post = await Blog.findByIdAndUpdate(
-      req.params.id,
-      { isDeleted: true, deletedAt: new Date() },
-      { new: true }
-    );
-
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    res
-      .status(200)
-      .json({ success: true, message: 'Post soft deleted', data: post });
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
-};
-
-// GET ALL POSTS
+// GET POSTS ALL POSTS
 export const getPosts = async (req, res) => {
   try {
     const posts = await Blog.find({ isDeleted: false }).populate(
@@ -108,6 +87,7 @@ export const getPosts = async (req, res) => {
   }
 };
 
+// GET POST BY ID
 export const getPostById = async (req, res) => {
   const { id } = req.params;
 
@@ -116,12 +96,87 @@ export const getPostById = async (req, res) => {
   }
 
   try {
-    const post = await Blog.findById(id).populate('author', 'username');
+    const post = await Blog.findOne({ _id: id, isDeleted: false }).populate(
+      'author',
+      'username'
+    );
+
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
     return res.status(200).json({ success: true, data: post });
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// SOFT DELETE POST
+export const deletePost = async (req, res) => {
+  try {
+    const post = await Blog.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Check ownership or admin
+    const isOwner = post.author.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isAdmin) {
+      return res
+        .status(403)
+        .json({ error: 'Unauthorized to delete this post' });
+    }
+
+    if (post.isDeleted) {
+      return res.status(400).json({ error: 'Post already deleted' });
+    }
+
+    // Soft delete
+    post.isDeleted = true;
+    post.deletedAt = new Date();
+    await post.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Post soft deleted', data: post });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// RESTORE DELETED POST
+export const restorePost = async (req, res) => {
+  try {
+    const post = await Blog.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Check ownership or admin
+    const isOwner = post.author.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isAdmin) {
+      return res
+        .status(403)
+        .json({ error: 'Unauthorized to restore this post' });
+    }
+
+    if (!post.isDeleted) {
+      return res.status(400).json({ error: 'Post is not deleted' });
+    }
+
+    post.isDeleted = false;
+    post.deletedAt = null;
+    await post.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Post restored', data: post });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
   }
 };

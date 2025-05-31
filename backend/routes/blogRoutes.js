@@ -5,6 +5,7 @@ import {
   getPostById,
   getPosts,
   patchPost,
+  restorePost,
 } from '../controllers/blog.controller.js';
 import authenticateUser from '../middleware/authUser.js';
 import { authorizeRole } from '../middleware/authorizeRole.js';
@@ -16,5 +17,7 @@ blogRouter.patch('/blog/:id', authenticateUser, patchPost);
 blogRouter.post('/blog/:id', authenticateUser, deletePost);
 blogRouter.get('/blog', getPosts);
 blogRouter.get('/blog/:id', getPostById);
+blogRouter.get('/blog/:id', getPostById);
+blogRouter.patch('/blog/restore/:id', authenticateUser, restorePost);
 
 export default blogRouter;

@@ -14,14 +14,16 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 15 * 60 * 1000, // 15 minutes
+    path: '/',
   });
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: '/',
   });
 };
 
@@ -84,10 +86,14 @@ export const loginUser = async (req, res) => {
   }
 
   try {
-    const existingUser = await User.findOne({ email, isDeleted: false });
+    const existingUser = await User.findOne({ email });
 
     if (!existingUser) {
       return res.status(404).json({ error: 'User does not exist' });
+    }
+
+    if (existingUser.isDeleted) {
+      return res.status(403).json({ error: 'This account has been disabled' });
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -193,8 +199,9 @@ export const refreshToken = async (req, res) => {
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
       secure: NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 15 * 60 * 1000,
+      path: '/',
     });
 
     return res.status(200).json({
@@ -213,22 +220,28 @@ export const logoutUser = (req, res) => {
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
+    path: '/',
   });
   res.clearCookie('accessToken', {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
+    path: '/',
   });
   res.status(200).json({ message: 'Logged out successfully' });
 };
 
-// PASSWORD RECOVER
+// PASSWORD RECOVER (with artificial delay)
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
     const user = await User.findOne({ email });
+
+    // Artificial delay to avoid timing attacks
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     if (!user) {
       return res
         .status(200)
@@ -280,5 +293,111 @@ export const resetPassword = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: 'Invalid or expired token' });
+  }
+};
+
+// CHANGE PASSWORD
+export const changePassword = async (req, res) => {
+  const userId = req.user._id; // Use _id here
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res
+      .status(400)
+      .json({ error: 'Current and new password are required' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedNewPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password successfully changed' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// SOFT DELETE USER
+export const deleteUser = async (req, res) => {
+  const { id } = req.params;
+
+  const isAdmin = req.user.role === 'admin';
+  const isOwner = req.user._id.toString() === id;
+
+  if (!isAdmin && !isOwner) {
+    return res
+      .status(403)
+      .json({ error: 'Forbidden: Not allowed to delete this user' });
+  }
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        isDeleted: true,
+        deletedAt: new Date(),
+        canRestore: isOwner, // user-deleted = true, admin-deleted = false
+      },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    return res.status(200).json({ message: 'User soft deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// RESTORE USER
+export const restoreUser = async (req, res) => {
+  const { id } = req.params;
+
+  const isAdmin = req.user.role === 'admin';
+  const isOwner = req.user._id.toString() === id;
+
+  if (!isAdmin && !isOwner) {
+    return res
+      .status(403)
+      .json({ error: 'Forbidden: Not allowed to restore this user' });
+  }
+
+  try {
+    const user = await User.findById(id);
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (!user.canRestore && !isAdmin) {
+      return res.status(403).json({
+        error: 'Account was disabled by an admin and cannot be restored',
+      });
+    }
+
+    user.isDeleted = false;
+    user.deletedAt = null;
+
+    if (isAdmin) {
+      user.canRestore = true;
+    }
+
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ message: 'User restored successfully', data: user });
+  } catch (error) {
+    console.error('Restore user error:', error);
+    return res.status(500).json({ error: 'Server error' });
   }
 };
