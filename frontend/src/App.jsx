@@ -46,17 +46,14 @@ const router = createBrowserRouter([
 
 const App = () => {
   const dispatch = useDispatch();
-  const currentUser = useSelector((state) => state.user.currentUser);
 
   useEffect(() => {
-    if (currentUser) {
-      dispatch(refreshUser())
-        .unwrap()
-        .catch(() => {
-          dispatch(logoutUser());
-        });
-    }
-  }, [currentUser, dispatch]);
+    dispatch(refreshUser())
+      .unwrap()
+      .catch(() => {
+        dispatch(logoutUser());
+      });
+  }, [dispatch]);
 
   return (
     <>

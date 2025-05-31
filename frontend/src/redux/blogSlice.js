@@ -51,9 +51,9 @@ export const getPostById = createAsyncThunk(
 // PATCH (update) post (includes adminOnly flag update)
 export const updatePost = createAsyncThunk(
   'blog/updatePost',
-  async ({ id, updates }, thunkAPI) => {
+  async ({ id, updatedData }, thunkAPI) => {
     try {
-      const response = await api.patch(`/blog/${id}`, updates, {
+      const response = await api.patch(`/blog/${id}`, updatedData, {
         withCredentials: true,
       });
       return response.data.data;
