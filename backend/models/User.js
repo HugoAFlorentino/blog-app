@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    canRestore: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

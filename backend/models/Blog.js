@@ -24,6 +24,15 @@ const blogSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    adminDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
   },
   { timestamps: true }
 );

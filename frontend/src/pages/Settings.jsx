@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { refreshUser, updateUser, clearMessage } from '../redux/userSlice'; // Adjust path as needed
+import {
+  refreshUser,
+  updateUser,
+  clearMessage,
+  changePassword,
+} from '../redux/userSlice'; // Adjust path as needed
 import { toast } from 'react-toastify';
 
 const Settings = () => {
@@ -24,7 +29,7 @@ const Settings = () => {
   });
 
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
+    oldPassword: '',
     newPassword: '',
     confirmNewPassword: '',
   });
@@ -71,12 +76,13 @@ const Settings = () => {
   const closeEditModal = () => {
     setShowEditModal(false);
   };
+
   const openDeleteModal = () => setShowDeleteModal(true);
   const closeDeleteModal = () => setShowDeleteModal(false);
 
   const openPasswordModal = () => {
     setPasswordForm({
-      currentPassword: '',
+      oldPassword: '',
       newPassword: '',
       confirmNewPassword: '',
     });
@@ -105,7 +111,7 @@ const Settings = () => {
   };
 
   const handleSoftDelete = () => {
-    // Call PATCH /user/delete or soft delete endpoint here if you add a thunk
+    // Implement soft delete thunk when ready
     alert('User soft deleted');
     setShowDeleteModal(false);
   };
@@ -126,20 +132,22 @@ const Settings = () => {
 
     setPasswordLoading(true);
     try {
-      // Call your password change API here
-      // Example: await dispatch(changePassword(passwordForm)).unwrap();
-
-      await new Promise((res) => setTimeout(res, 1000)); // fake delay
+      await dispatch(
+        changePassword({
+          currentPassword: passwordForm.oldPassword,
+          newPassword: passwordForm.newPassword,
+        })
+      ).unwrap();
 
       toast.success('Password changed successfully!');
       setPasswordForm({
-        currentPassword: '',
+        oldPassword: '',
         newPassword: '',
         confirmNewPassword: '',
       });
       closePasswordModal();
-    } catch {
-      toast.error('Failed to change password.');
+    } catch (err) {
+      toast.error(err || 'Failed to change password.');
     } finally {
       setPasswordLoading(false);
     }
@@ -209,8 +217,6 @@ const Settings = () => {
           <div className='bg-white dark:bg-neutral rounded-lg max-w-md w-full p-6 relative'>
             <h3 className='text-xl font-semibold mb-4'>Edit Profile</h3>
             <form onSubmit={handleUpdate} className='space-y-4'>
-              {/* Remove inline updateError & updateMessage display here */}
-
               <div>
                 <label htmlFor='username' className='block font-medium mb-1'>
                   Name
@@ -272,9 +278,9 @@ const Settings = () => {
             <form onSubmit={handlePasswordChangeSubmit} className='space-y-4'>
               <input
                 type='password'
-                name='currentPassword'
+                name='oldPassword'
                 placeholder='Current Password'
-                value={passwordForm.currentPassword}
+                value={passwordForm.oldPassword}
                 onChange={handlePasswordChangeInput}
                 required
                 className='w-full px-3 py-2 border border-secondary rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
@@ -331,7 +337,7 @@ const Settings = () => {
             </h3>
             <p className='mb-6'>
               Are you sure you want to deactivate your account? This will make
-              your profile inactive but your data will be retained.
+              your profile inactive but will not delete your data.
             </p>
             <div className='flex justify-end space-x-4'>
               <button
@@ -342,7 +348,7 @@ const Settings = () => {
               </button>
               <button
                 onClick={handleSoftDelete}
-                className='px-5 py-2 rounded-full bg-accent text-white font-semibold hover:bg-red-700 transition'
+                className='px-5 py-2 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition'
               >
                 Deactivate
               </button>

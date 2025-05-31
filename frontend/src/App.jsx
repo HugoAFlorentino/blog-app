@@ -49,7 +49,7 @@ const App = () => {
   const currentUser = useSelector((state) => state.user.currentUser);
 
   useEffect(() => {
-    if (!currentUser) {
+    if (currentUser) {
       dispatch(refreshUser())
         .unwrap()
         .catch(() => {
