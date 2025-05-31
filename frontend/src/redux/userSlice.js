@@ -177,6 +177,21 @@ export const restoreUser = createAsyncThunk(
   }
 );
 
+// GET USER BY ID
+export const getUserById = createAsyncThunk(
+  'user/getUserById',
+  async (id, thunkAPI) => {
+    try {
+      const res = await api.get(`/users/${id}`, { withCredentials: true });
+      return res.data.data; // assuming user data is in data.data
+    } catch (err) {
+      const message =
+        err.response?.data?.message || err.message || 'Failed to fetch user';
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: 'user',
   initialState: {
@@ -368,6 +383,21 @@ const userSlice = createSlice({
       .addCase(restoreUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to restore user';
+      }) // getUserById
+      .addCase(getUserById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.viewedUser = null;
+      })
+      .addCase(getUserById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.viewedUser = action.payload;
+        state.error = null;
+      })
+      .addCase(getUserById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.viewedUser = null;
       });
   },
 });

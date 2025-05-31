@@ -180,3 +180,18 @@ export const restorePost = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+// GET POSTS BY USER
+
+export const getPostsByUser = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    // Find posts by author (adjust the field name if different)
+    const posts = await Post.find({ author: userId, isDeleted: false });
+    res.status(200).json({ success: true, data: posts });
+  } catch (error) {
+    console.error('Fetch posts by user error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

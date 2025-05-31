@@ -4,6 +4,7 @@ import {
   deletePost,
   getPostById,
   getPosts,
+  getPostsByUser,
   patchPost,
   restorePost,
 } from '../controllers/blog.controller.js';
@@ -19,5 +20,6 @@ blogRouter.get('/blog', getPosts);
 blogRouter.get('/blog/:id', getPostById);
 blogRouter.get('/blog/:id', getPostById);
 blogRouter.patch('/blog/restore/:id', authenticateUser, restorePost);
+blogRouter.get('/blog/user/:userId', authenticateUser, getPostsByUser);
 
 export default blogRouter;

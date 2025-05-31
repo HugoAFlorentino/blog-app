@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllPosts } from '../redux/blogSlice'; // adjust path if needed
+import { getAllPosts } from '../redux/blogSlice.js';
 import { useNavigate } from 'react-router-dom';
 
 const fadeUp = {

@@ -401,3 +401,16 @@ export const restoreUser = async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 };
+
+// GET USERS
+
+export const getUsers = async (req, res) => {
+  try {
+    // Only return users that are not soft deleted
+    const users = await User.find({ isDeleted: false }).select('-password');
+    res.status(200).json({ success: true, data: users });
+  } catch (error) {
+    console.error('Fetch users error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
