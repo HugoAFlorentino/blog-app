@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom'; // <-- added
+import { useNavigate } from 'react-router-dom';
 import {
   refreshUser,
   updateUser,
@@ -12,9 +12,8 @@ import { toast } from 'react-toastify';
 
 const Settings = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // <-- initialize navigate
+  const navigate = useNavigate();
 
-  // Select currentUser and user slice state
   const currentUser = useSelector((state) => state.user.currentUser);
   const {
     loading: updateLoading,
@@ -41,12 +40,10 @@ const Settings = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  // Refresh user data on mount
   useEffect(() => {
     dispatch(refreshUser());
   }, [dispatch]);
 
-  // Update form when currentUser changes
   useEffect(() => {
     if (currentUser) {
       setForm({
@@ -56,7 +53,6 @@ const Settings = () => {
     }
   }, [currentUser]);
 
-  // Show toast for profile update success/error based on Redux state
   useEffect(() => {
     if (updateError) {
       toast.error(updateError);
@@ -87,6 +83,7 @@ const Settings = () => {
     }
     setShowDeleteModal(true);
   };
+
   const closeDeleteModal = () => setShowDeleteModal(false);
 
   const openPasswordModal = () => {
@@ -114,7 +111,7 @@ const Settings = () => {
         setShowEditModal(false);
       })
       .catch(() => {
-        // error handled by Redux state, no action needed here
+        // error handled by Redux state
       });
   };
 
@@ -128,7 +125,7 @@ const Settings = () => {
         setSoftDeleteUser(null);
         setShowDeleteModal(false);
 
-        // Navigate to home page after deletion instead of reload
+        // Navigate to home page after deletion
         navigate('/');
       })
       .catch(() => {

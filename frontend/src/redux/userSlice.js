@@ -19,11 +19,13 @@ export const fetchUsers = createAsyncThunk(
 // Sign in user
 export const signInUser = createAsyncThunk(
   'user/signInUser',
-  async (credentials, thunkAPI) => {
+  async ({ email, password, recaptchaToken }, thunkAPI) => {
     try {
-      const res = await api.post('/users/signin', credentials, {
-        withCredentials: true,
-      });
+      const res = await api.post(
+        '/users/signin',
+        { email, password, recaptchaToken }, // pass recaptchaToken here
+        { withCredentials: true }
+      );
       return res.data.data.user;
     } catch (err) {
       const message =
@@ -36,16 +38,17 @@ export const signInUser = createAsyncThunk(
 // Sign up user
 export const signUpUser = createAsyncThunk(
   'user/signUpUser',
-  async (formData, thunkAPI) => {
+  async ({ username, email, password, recaptchaToken }, thunkAPI) => {
     try {
-      const res = await api.post('/users/signup', formData, {
-        withCredentials: true,
-      });
+      const res = await api.post(
+        '/users/signup',
+        { username, email, password, recaptchaToken },
+        { withCredentials: true }
+      );
       return res.data.data.user;
     } catch (err) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.message || err.message
-      );
+      // err.response.data.error per backend structure
+      return thunkAPI.rejectWithValue(err.response?.data?.error || err.message);
     }
   }
 );

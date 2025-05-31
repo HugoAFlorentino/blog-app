@@ -9,6 +9,7 @@ import {
   FRONTEND_URL,
 } from '../config/env.config.js';
 import sendEmail from '../utils/sendEmail.js';
+import verifyRecaptcha from '../utils/recaptcha.js';
 
 // Helper to set access & refresh token cookies
 const setAuthCookies = (res, accessToken, refreshToken) => {
@@ -32,16 +33,35 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // CREATE USER
 export const createUser = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, recaptchaToken } = req.body;
 
-  if (!username || !email || !password) {
-    return res.status(400).json({ error: 'All fields must be provided' });
+  if (!username || !email || !password || !recaptchaToken) {
+    return res
+      .status(400)
+      .json({ error: 'All fields and recaptchaToken must be provided' });
+  }
+
+  // Verify reCAPTCHA token first
+  const recaptchaResponse = await verifyRecaptcha(recaptchaToken);
+
+  if (!recaptchaResponse.success) {
+    return res.status(400).json({ error: 'reCAPTCHA verification failed' });
   }
 
   try {
-    const existingUser = await User.findOne({ email, isDeleted: false });
+    // Check if email OR username exists
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+      isDeleted: false,
+    });
+
     if (existingUser) {
-      return res.status(409).json({ error: 'User already exists' });
+      if (existingUser.email === email) {
+        return res.status(409).json({ error: 'Email already exists' });
+      }
+      if (existingUser.username === username) {
+        return res.status(409).json({ error: 'Username already exists' });
+      }
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -82,10 +102,19 @@ export const createUser = async (req, res) => {
 
 // LOGIN USER
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, recaptchaToken } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and Password required' });
+  if (!email || !password || !recaptchaToken) {
+    return res
+      .status(400)
+      .json({ error: 'Email, Password, and recaptchaToken required' });
+  }
+
+  // Verify reCAPTCHA token first
+  const recaptchaResponse = await verifyRecaptcha(recaptchaToken);
+
+  if (!recaptchaResponse.success) {
+    return res.status(400).json({ error: 'reCAPTCHA verification failed' });
   }
 
   try {

@@ -11,4 +11,6 @@ export const {
   BREVO_API_KEY,
   BREVO_SENDER_EMAIL,
   FRONTEND_URL,
+  SITE_KEY,
+  SECRET_KEY,
 } = process.env;

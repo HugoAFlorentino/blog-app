@@ -1,7 +1,36 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { signUpUser } from '../redux/userSlice';
+import { toast } from 'react-toastify';
+
+const loadReCaptchaScript = () => {
+  return new Promise((resolve, reject) => {
+    if (window.grecaptcha) {
+      resolve(window.grecaptcha);
+      return;
+    }
+    const existingScript = document.getElementById('recaptcha-script');
+    if (existingScript) {
+      existingScript.addEventListener('load', () => {
+        if (window.grecaptcha) resolve(window.grecaptcha);
+        else reject(new Error('reCAPTCHA not available'));
+      });
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = 'recaptcha-script';
+    script.src = 'https://www.google.com/recaptcha/api.js';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (window.grecaptcha) resolve(window.grecaptcha);
+      else reject(new Error('reCAPTCHA not available'));
+    };
+    script.onerror = () => reject(new Error('Failed to load reCAPTCHA script'));
+    document.body.appendChild(script);
+  });
+};
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -10,10 +39,14 @@ const SignUp = () => {
     password: '',
   });
 
+  const [recaptchaToken, setRecaptchaToken] = useState('');
+  const widgetIdRef = useRef(null);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const { currentUser, loading, error } = useSelector((state) => state.user);
+
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
   useEffect(() => {
     if (currentUser) {
@@ -21,17 +54,48 @@ const SignUp = () => {
     }
   }, [currentUser, navigate]);
 
+  useEffect(() => {
+    loadReCaptchaScript()
+      .then((grecaptcha) => {
+        grecaptcha.ready(() => {
+          // Avoid re-rendering if already rendered
+          if (widgetIdRef.current !== null) return;
+
+          widgetIdRef.current = grecaptcha.render('recaptcha-container', {
+            sitekey: siteKey,
+            size: 'normal', // visible checkbox
+            callback: (token) => {
+              setRecaptchaToken(token);
+            },
+            'expired-callback': () => {
+              setRecaptchaToken('');
+              toast.error('reCAPTCHA expired, please complete it again.');
+            },
+          });
+        });
+      })
+      .catch(() => {
+        toast.error('Failed to load reCAPTCHA.');
+      });
+  }, [siteKey]);
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.id]: e.target.value,
-    });
+    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    dispatch(signUpUser(formData));
-  };
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+
+      if (!recaptchaToken) {
+        toast.error('Please complete the reCAPTCHA challenge.');
+        return;
+      }
+
+      dispatch(signUpUser({ ...formData, recaptchaToken }));
+    },
+    [dispatch, formData, recaptchaToken]
+  );
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-background text-text px-4'>
@@ -39,7 +103,6 @@ const SignUp = () => {
         <h2 className='text-2xl font-semibold mb-6 text-center'>Sign Up</h2>
 
         <form className='space-y-5' onSubmit={handleSubmit}>
-          {/* USERNAME */}
           <div>
             <label htmlFor='username' className='block mb-1 font-medium'>
               Username
@@ -53,10 +116,10 @@ const SignUp = () => {
               className='w-full px-4 py-2 rounded bg-background text-text border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary'
               required
               disabled={loading}
+              autoComplete='username'
             />
           </div>
 
-          {/* Email */}
           <div>
             <label htmlFor='email' className='block mb-1 font-medium'>
               Email
@@ -70,10 +133,10 @@ const SignUp = () => {
               className='w-full px-4 py-2 rounded bg-background text-text border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary'
               required
               disabled={loading}
+              autoComplete='email'
             />
           </div>
 
-          {/* Password */}
           <div>
             <label htmlFor='password' className='block mb-1 font-medium'>
               Password
@@ -87,17 +150,18 @@ const SignUp = () => {
               className='w-full px-4 py-2 rounded bg-background text-text border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary'
               required
               disabled={loading}
+              autoComplete='new-password'
             />
           </div>
 
-          {/* Error Message */}
+          <div id='recaptcha-container' className='mt-4' />
+
           {error && <p className='text-red-500 text-sm mt-2'>{error}</p>}
 
-          {/* Submit Button */}
           <button
             type='submit'
-            className='w-full bg-primary text-white py-2 rounded hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
             disabled={loading}
+            className='w-full bg-primary text-white py-2 rounded hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
           >
             {loading && (
               <svg
@@ -124,8 +188,6 @@ const SignUp = () => {
             {loading ? 'Signing Up...' : 'Sign Up'}
           </button>
         </form>
-
-        {/* Optional links */}
 
         <div className='mt-2 text-sm text-center'>
           Already have an account?{' '}
