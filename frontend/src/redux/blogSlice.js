@@ -18,12 +18,16 @@ export const createPost = createAsyncThunk(
   }
 );
 
-// GET ALL POSTS
+// GET ALL POSTS with optional title filter
 export const getAllPosts = createAsyncThunk(
   'blog/getAllPosts',
-  async (_, thunkAPI) => {
+  async (filter = '', thunkAPI) => {
     try {
-      const response = await api.get('/blog');
+      let url = '/blog';
+      if (filter) {
+        url += `?title=${encodeURIComponent(filter)}`;
+      }
+      const response = await api.get(url);
       return response.data.data;
     } catch (err) {
       const message =
@@ -48,7 +52,7 @@ export const getPostById = createAsyncThunk(
   }
 );
 
-// PATCH (update) post (includes adminOnly flag update)
+// PATCH (update) post
 export const updatePost = createAsyncThunk(
   'blog/updatePost',
   async ({ id, updatedData }, thunkAPI) => {
@@ -196,7 +200,6 @@ const blogSlice = createSlice({
       })
       .addCase(deletePost.fulfilled, (state, action) => {
         state.loading = false;
-        // Mark the post as deleted in state (soft delete)
         const id = action.payload;
         const index = state.posts.findIndex((p) => p._id === id);
         if (index !== -1) {

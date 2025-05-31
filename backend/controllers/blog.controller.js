@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Blog from '../models/Blog.js';
 
 // CREATE POST DUPLICATED INDEX VERIFICATION IS TRUE
@@ -74,15 +75,20 @@ export const patchPost = async (req, res) => {
   }
 };
 
-// GET POSTS ALL POSTS
+// GET POSTS ALL POSTS with optional title filter
 export const getPosts = async (req, res) => {
   try {
-    const posts = await Blog.find({ isDeleted: false }).populate(
-      'author',
-      'username'
-    );
+    const { title } = req.query;
+
+    const query = { isDeleted: false };
+    if (title) {
+      query.title = { $regex: title, $options: 'i' }; // case-insensitive partial match
+    }
+
+    const posts = await Blog.find(query).populate('author', 'username');
     res.status(200).json({ success: true, data: posts });
   } catch (error) {
+    console.error('Get posts error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -181,14 +187,26 @@ export const restorePost = async (req, res) => {
   }
 };
 
-// GET POSTS BY USER
-
+// GET POSTS BY USER with optional title filter
 export const getPostsByUser = async (req, res) => {
   const userId = req.params.userId;
+  const { title } = req.query;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
 
   try {
-    // Find posts by author (adjust the field name if different)
-    const posts = await Post.find({ author: userId, isDeleted: false });
+    const query = {
+      author: userId,
+      isDeleted: false,
+    };
+
+    if (title) {
+      query.title = { $regex: title, $options: 'i' };
+    }
+
+    const posts = await Blog.find(query).populate('author', 'username');
     res.status(200).json({ success: true, data: posts });
   } catch (error) {
     console.error('Fetch posts by user error:', error);

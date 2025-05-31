@@ -11,13 +11,17 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredPosts, setFilteredPosts] = useState([]);
   const lastScrollY = useRef(0);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
+  const { posts } = useSelector((state) => state.blogs); // <- correct state here
 
   const userMenuRef = useRef();
   const menuRef = useRef();
+  const searchRef = useRef();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -71,6 +75,42 @@ const Navbar = () => {
     };
   }, [menuOpen]);
 
+  // Close search dropdown if clicked outside
+  useEffect(() => {
+    const handleClickOutsideSearch = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setFilteredPosts([]);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutsideSearch);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideSearch);
+    };
+  }, []);
+
+  // Filter posts locally as user types in search
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredPosts([]);
+      return;
+    }
+
+    const filtered = posts.filter((post) =>
+      post.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredPosts(filtered.slice(0, 5)); // limit to top 5 results
+  }, [searchTerm, posts]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleResultClick = (id) => {
+    setSearchTerm('');
+    setFilteredPosts([]);
+    navigate(`/blogs/${id}`);
+  };
+
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
@@ -94,12 +134,27 @@ const Navbar = () => {
           BlogApp
         </Link>
 
-        <div className='hidden md:block'>
+        <div className='relative hidden md:block' ref={searchRef}>
           <input
             type='text'
             placeholder='Search posts...'
-            className='px-3 py-1 rounded bg-neutral text-text outline-none focus:ring-2 ring-primary'
+            className='px-3 py-1 rounded bg-neutral text-text outline-none focus:ring-2 ring-primary w-64'
+            value={searchTerm}
+            onChange={handleSearchChange}
           />
+          {filteredPosts.length > 0 && (
+            <ul className='absolute z-30 bg-neutral rounded shadow-md mt-1 w-full max-h-60 overflow-auto'>
+              {filteredPosts.map((post) => (
+                <li
+                  key={post._id}
+                  onClick={() => handleResultClick(post._id)}
+                  className='cursor-pointer px-3 py-2 hover:bg-primary hover:text-white transition'
+                >
+                  {post.title}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className='hidden md:flex items-center gap-4'>
@@ -109,9 +164,11 @@ const Navbar = () => {
           <Link to='/blogs' className='hover:text-primary transition'>
             Blogs
           </Link>
-          <Link to='/create' className='hover:text-primary transition'>
-            Create
-          </Link>
+          {currentUser && (
+            <Link to='/create' className='hover:text-primary transition'>
+              Create
+            </Link>
+          )}
 
           {currentUser ? (
             <div className='relative' ref={userMenuRef}>
@@ -178,6 +235,7 @@ const Navbar = () => {
 
       {menuOpen && (
         <div ref={menuRef} className='md:hidden px-4 pb-4 space-y-3'>
+          {/* Same links here */}
           <Link to='/' onClick={closeMenu} className='block hover:text-primary'>
             Home
           </Link>

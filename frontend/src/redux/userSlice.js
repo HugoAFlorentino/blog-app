@@ -1,6 +1,21 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import api from '../utils/axios';
 
+// Fetch all users (to be able to filter by author)
+export const fetchUsers = createAsyncThunk(
+  'user/fetchUsers',
+  async (_, thunkAPI) => {
+    try {
+      const res = await api.get('/users', { withCredentials: true });
+      return res.data.data; // assuming array of users is here
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || err.message || 'Failed to fetch users'
+      );
+    }
+  }
+);
+
 // Sign in user
 export const signInUser = createAsyncThunk(
   'user/signInUser',
@@ -199,6 +214,9 @@ const userSlice = createSlice({
     loading: false,
     error: null,
     message: null,
+    viewedUser: null,
+    users: [], // <-- all fetched users
+    authorFilter: '', // <-- filter string for author
   },
   reducers: {
     logout: (state) => {
@@ -208,9 +226,30 @@ const userSlice = createSlice({
       state.message = null;
       state.error = null;
     },
+    setAuthorFilter: (state, action) => {
+      state.authorFilter = action.payload;
+    },
+    clearAuthorFilter: (state) => {
+      state.authorFilter = '';
+    },
   },
   extraReducers: (builder) => {
     builder
+      // Fetch all users
+      .addCase(fetchUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       // signInUser
       .addCase(signInUser.pending, (state) => {
         state.loading = true;
@@ -314,7 +353,6 @@ const userSlice = createSlice({
       })
       .addCase(updateUser.fulfilled, (state, action) => {
         state.loading = false;
-        // merge updated user data, including isAdmin flag if changed
         state.currentUser = {
           ...state.currentUser,
           ...action.payload,
@@ -343,7 +381,7 @@ const userSlice = createSlice({
         state.error = action.payload;
       })
 
-      // deleteUser (soft delete)
+      // deleteUser
       .addCase(deleteUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -354,10 +392,12 @@ const userSlice = createSlice({
         state.message = 'User deleted successfully';
         state.error = null;
 
-        // If currentUser is the one deleted, clear it
         if (state.currentUser?.id === action.payload?.id) {
           state.currentUser = null;
         }
+
+        // Also remove deleted user from users array
+        state.users = state.users.filter((u) => u.id !== action.payload?.id);
       })
       .addCase(deleteUser.rejected, (state, action) => {
         state.loading = false;
@@ -375,15 +415,24 @@ const userSlice = createSlice({
         state.message = 'User restored successfully';
         state.error = null;
 
-        // If currentUser is the one restored, update it
         if (state.currentUser?.id === action.payload?.id) {
           state.currentUser = action.payload;
+        }
+
+        // Add restored user back to users array or update it
+        const idx = state.users.findIndex((u) => u.id === action.payload?.id);
+        if (idx !== -1) {
+          state.users[idx] = action.payload;
+        } else {
+          state.users.push(action.payload);
         }
       })
       .addCase(restoreUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to restore user';
-      }) // getUserById
+      })
+
+      // getUserById
       .addCase(getUserById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -402,5 +451,15 @@ const userSlice = createSlice({
   },
 });
 
-export const { logout, clearMessage } = userSlice.actions;
+// Selector to get filtered users by authorFilter
+export const selectFilteredUsers = (state) => {
+  if (!state.user.authorFilter) return state.user.users;
+  return state.user.users.filter((user) =>
+    user.username.toLowerCase().includes(state.user.authorFilter.toLowerCase())
+  );
+};
+
+export const { logout, clearMessage, setAuthorFilter, clearAuthorFilter } =
+  userSlice.actions;
+
 export default userSlice.reducer;

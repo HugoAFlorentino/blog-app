@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
@@ -26,6 +27,8 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
     path: '/',
   });
 };
+
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 // CREATE USER
 export const createUser = async (req, res) => {
@@ -131,16 +134,26 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// PATCH USER
+// PATCH USER (update)
 export const updateUser = async (req, res) => {
   const { username, email } = req.body;
-  const userId = req.user.id;
+
+  // Determine which user to update: admin can update any user, else update self
+  let userId = req.user._id;
+  if (req.user.role === 'admin' && req.params.id) {
+    userId = req.params.id;
+  }
 
   if (!username || !email) {
     return res.status(400).json({ error: 'All fields must be provided' });
   }
 
+  if (!isValidObjectId(userId)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
+
   try {
+    // Check if email is already taken by another user
     const emailTaken = await User.findOne({ email, _id: { $ne: userId } });
     if (emailTaken) {
       return res.status(409).json({ error: 'Email is already in use' });
@@ -277,6 +290,10 @@ export const resetPassword = async (req, res) => {
   const { id, token } = req.params;
   const { password } = req.body;
 
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
+
   try {
     const user = await User.findById(id);
     if (!user) return res.status(400).json({ error: 'Invalid user' });
@@ -298,7 +315,7 @@ export const resetPassword = async (req, res) => {
 
 // CHANGE PASSWORD
 export const changePassword = async (req, res) => {
-  const userId = req.user._id; // Use _id here
+  const userId = req.user._id;
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
@@ -330,6 +347,10 @@ export const changePassword = async (req, res) => {
 // SOFT DELETE USER
 export const deleteUser = async (req, res) => {
   const { id } = req.params;
+
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
 
   const isAdmin = req.user.role === 'admin';
   const isOwner = req.user._id.toString() === id;
@@ -363,6 +384,10 @@ export const deleteUser = async (req, res) => {
 // RESTORE USER
 export const restoreUser = async (req, res) => {
   const { id } = req.params;
+
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
 
   const isAdmin = req.user.role === 'admin';
   const isOwner = req.user._id.toString() === id;
@@ -403,14 +428,15 @@ export const restoreUser = async (req, res) => {
 };
 
 // GET USERS
-
 export const getUsers = async (req, res) => {
   try {
-    // Only return users that are not soft deleted
-    const users = await User.find({ isDeleted: false }).select('-password');
-    res.status(200).json({ success: true, data: users });
+    // Only fetch users who are not soft deleted
+    const users = await User.find({ isDeleted: false }).select(
+      'username email createdAt'
+    );
+    res.status(200).json({ data: users });
   } catch (error) {
-    console.error('Fetch users error:', error);
+    console.error('Get users error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
