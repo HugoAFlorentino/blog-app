@@ -16,7 +16,7 @@ export const createPost = async (req, res) => {
     });
 
     const savedPost = await newPost.save();
-    const populatedPost = await savedPost.populate('author', 'username');
+    const populatedPost = await savedPost.populate('author', '_id username');
 
     res.status(201).json({ success: true, data: populatedPost });
   } catch (error) {

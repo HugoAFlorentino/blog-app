@@ -7,20 +7,21 @@ import { toast } from 'react-toastify';
 const Blogs = () => {
   const dispatch = useDispatch();
   const { posts, loading, error } = useSelector((state) => state.blogs);
+  const currentUser = useSelector((state) => state.user?.currentUser);
+
   const [expandedPosts, setExpandedPosts] = useState({});
   const { id } = useParams();
 
   const postRefs = useRef({});
 
-  // Modal-related state
   const [showModal, setShowModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedBody, setEditedBody] = useState('');
 
-  // Delete confirmation modal state
   const [deletePostId, setDeletePostId] = useState(null);
 
+  // Always fetch posts on mount regardless of user logged in or not
   useEffect(() => {
     dispatch(getAllPosts());
   }, [dispatch]);
@@ -42,17 +43,14 @@ const Blogs = () => {
     }));
   };
 
-  // Open delete confirmation modal
   const confirmDelete = (postId) => {
     setDeletePostId(postId);
   };
 
-  // Cancel delete
   const cancelDelete = () => {
     setDeletePostId(null);
   };
 
-  // Actually delete post
   const handleDelete = () => {
     if (!deletePostId) return;
 
@@ -61,13 +59,7 @@ const Blogs = () => {
       .then(() => {
         toast.success('Post deleted successfully!');
         setDeletePostId(null);
-
-        // Refresh page then scroll to bottom after a slight delay
-        window.location.reload();
-
-        // Optional: if you want to scroll after reload, you could add a small script on page load,
-        // but usually reload resets scroll to top by default.
-        // If you want scroll after reload, you would need to save a flag in localStorage or similar.
+        dispatch(getAllPosts()); // Refresh posts after delete
       })
       .catch(() => {
         toast.error('Failed to delete post.');
@@ -102,6 +94,7 @@ const Blogs = () => {
             top: document.body.scrollHeight,
             behavior: 'smooth',
           });
+          dispatch(getAllPosts()); // Refresh posts after update
         })
         .catch(() => {
           toast.error('Failed to update post.');
@@ -128,58 +121,69 @@ const Blogs = () => {
           ) : error ? (
             <p className='text-accent'>{error}</p>
           ) : (
-            posts.map((post) => {
-              const isExpanded = expandedPosts[post._id];
+            posts
+              .filter((post) => !post.isDeleted)
+              .map((post) => {
+                const isExpanded = expandedPosts[post._id];
+                const isOwner =
+                  currentUser &&
+                  (post.author?._id === currentUser._id ||
+                    post.author === currentUser._id);
+                const isAdmin = currentUser && currentUser.role === 'admin';
 
-              return (
-                <div
-                  key={post._id}
-                  ref={(el) => (postRefs.current[post._id] = el)}
-                  id={post._id}
-                  className='bg-white dark:bg-neutral p-6 rounded-lg shadow hover:shadow-md transition'
-                >
-                  <h3 className='text-2xl font-heading font-semibold mb-2'>
-                    {post.title}
-                  </h3>
-
-                  <p
-                    className={`text-secondary mb-3 ${
-                      !isExpanded ? 'line-clamp-3' : ''
-                    }`}
+                return (
+                  <div
+                    key={post._id}
+                    ref={(el) => (postRefs.current[post._id] = el)}
+                    id={post._id}
+                    className='bg-white dark:bg-neutral p-6 rounded-lg shadow hover:shadow-md transition'
                   >
-                    {post.body}
-                  </p>
+                    <h3 className='text-2xl font-heading font-semibold mb-2'>
+                      {post.title}
+                    </h3>
 
-                  <p className='text-sm text-gray-500 mb-2'>
-                    Author:{' '}
-                    <span className='font-medium'>
-                      {post.author?.username || 'Unknown'}
-                    </span>
-                  </p>
+                    <p
+                      className={`text-secondary mb-3 ${
+                        !isExpanded ? 'line-clamp-3' : ''
+                      }`}
+                    >
+                      {post.body}
+                    </p>
 
-                  <button
-                    onClick={() => toggleExpand(post._id)}
-                    className='text-primary font-medium hover:underline mr-4'
-                  >
-                    {isExpanded ? 'Show Less ←' : 'Read More →'}
-                  </button>
+                    <p className='text-sm text-gray-500 mb-2'>
+                      Author:{' '}
+                      <span className='font-medium'>
+                        {post.author?.username || 'Unknown'}
+                      </span>
+                    </p>
 
-                  <button
-                    onClick={() => handleEdit(post)}
-                    className='text-yellow-600 font-medium hover:underline mr-4'
-                  >
-                    Edit
-                  </button>
+                    <button
+                      onClick={() => toggleExpand(post._id)}
+                      className='text-primary font-medium hover:underline mr-4'
+                    >
+                      {isExpanded ? 'Show Less ←' : 'Read More →'}
+                    </button>
 
-                  <button
-                    onClick={() => confirmDelete(post._id)}
-                    className='text-red-600 font-medium hover:underline'
-                  >
-                    Delete
-                  </button>
-                </div>
-              );
-            })
+                    {/* Show edit/delete only if logged in and authorized */}
+                    {(isOwner || isAdmin) && (
+                      <>
+                        <button
+                          onClick={() => handleEdit(post)}
+                          className='text-yellow-600 font-medium hover:underline mr-4'
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => confirmDelete(post._id)}
+                          className='text-red-600 font-medium hover:underline'
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })
           )}
         </div>
 
