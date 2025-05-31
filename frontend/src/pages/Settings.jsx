@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom'; // <-- added
 import {
   refreshUser,
   updateUser,
   clearMessage,
   changePassword,
+  deleteUser,
 } from '../redux/userSlice'; // Adjust path as needed
 import { toast } from 'react-toastify';
 
 const Settings = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // <-- initialize navigate
 
   // Select currentUser and user slice state
   const currentUser = useSelector((state) => state.user.currentUser);
@@ -22,6 +25,7 @@ const Settings = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [softDeleteUser, setSoftDeleteUser] = useState(null);
 
   const [form, setForm] = useState({
     username: '',
@@ -77,7 +81,12 @@ const Settings = () => {
     setShowEditModal(false);
   };
 
-  const openDeleteModal = () => setShowDeleteModal(true);
+  const openDeleteModal = () => {
+    if (currentUser && currentUser._id) {
+      setSoftDeleteUser(currentUser._id);
+    }
+    setShowDeleteModal(true);
+  };
   const closeDeleteModal = () => setShowDeleteModal(false);
 
   const openPasswordModal = () => {
@@ -97,7 +106,6 @@ const Settings = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Dispatch updateUser thunk here
   const handleUpdate = (e) => {
     e.preventDefault();
     dispatch(updateUser({ username: form.username, email: form.email }))
@@ -111,9 +119,23 @@ const Settings = () => {
   };
 
   const handleSoftDelete = () => {
-    // Implement soft delete thunk when ready
-    alert('User soft deleted');
-    setShowDeleteModal(false);
+    if (!softDeleteUser) return;
+
+    dispatch(deleteUser(softDeleteUser))
+      .unwrap()
+      .then(() => {
+        toast.success('Account deactivated successfully!');
+        setSoftDeleteUser(null);
+        setShowDeleteModal(false);
+
+        // Navigate to home page after deletion instead of reload
+        navigate('/');
+      })
+      .catch(() => {
+        toast.error('Failed to deactivate account.');
+        setSoftDeleteUser(null);
+        setShowDeleteModal(false);
+      });
   };
 
   const handlePasswordChangeInput = (e) => {
