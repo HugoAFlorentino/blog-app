@@ -2,8 +2,7 @@ import axios from 'axios';
 import { SECRET_KEY } from '../config/env.config.js';
 
 const verifyRecaptcha = async (token) => {
-  const secretKey = SECRET_KEY; // keep secret in env
-  console.log('🚀 ~ verifyRecaptcha ~ secretKey:', secretKey);
+  const secretKey = SECRET_KEY;
 
   try {
     const response = await axios.post(

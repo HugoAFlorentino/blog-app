@@ -5,11 +5,12 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
-import sendEmail from './utils/sendEmail.js';
 
 import userRouter from './routes/usersRoutes.js';
 import blogRouter from './routes/blogRoutes.js';
 import authRouter from './routes/authRoutes.js';
+import mongoSanitize from 'express-mongo-sanitize';
+import sanitizeBody from './middleware/sanitizeBody.js';
 
 const app = express();
 
@@ -19,7 +20,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(helmet());
-
+app.use(sanitizeBody);
+app.use((req, res, next) => {
+  if (req.body) req.body = mongoSanitize.sanitize(req.body);
+  next();
+});
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -33,20 +38,6 @@ app.use(
     credentials: true,
   })
 );
-
-app.get('/api/v1/test-email', async (req, res) => {
-  try {
-    await sendEmail(
-      'hugoflorentino86@gmail.com',
-      'Test Email',
-      '<h1>Hello from test route!</h1>'
-    );
-    res.status(200).send('Test email sent successfully');
-  } catch (error) {
-    console.error('Email sending failed:', error);
-    res.status(500).send('Failed to send test email');
-  }
-});
 
 app.use('/api/v1', userRouter);
 app.use('/api/v1', blogRouter);
