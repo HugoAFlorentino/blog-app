@@ -220,6 +220,7 @@ const userSlice = createSlice({
     viewedUser: null,
     users: [], // <-- all fetched users
     authorFilter: '', // <-- filter string for author
+    authChecked: false,
   },
   reducers: {
     logout: (state) => {
@@ -289,16 +290,15 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(refreshUser.fulfilled, (state, action) => {
-        state.loading = false;
         state.currentUser = action.payload;
+        state.authChecked = true;
         state.error = null;
-      })
-      .addCase(refreshUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
-        if (action.payload === 'Not authenticated') {
-          state.currentUser = null;
-        }
+      })
+      .addCase(refreshUser.rejected, (state) => {
+        state.currentUser = null;
+        state.authChecked = true;
+        state.loading = false;
       })
 
       // logoutUser

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import User from '../models/User.js';
+import logActivity from '../utils/logActivity.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import {
@@ -16,14 +17,14 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge: 15 * 60 * 1000, // 15 minutes
     path: '/',
   });
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });
@@ -41,7 +42,6 @@ export const createUser = async (req, res) => {
       .json({ error: 'All fields and recaptchaToken must be provided' });
   }
 
-  // Verify reCAPTCHA token first
   const recaptchaResponse = await verifyRecaptcha(recaptchaToken);
 
   if (!recaptchaResponse.success) {
@@ -49,7 +49,6 @@ export const createUser = async (req, res) => {
   }
 
   try {
-    // Check if email OR username exists
     const existingUser = await User.findOne({
       $or: [{ email }, { username }],
       isDeleted: false,
@@ -71,6 +70,12 @@ export const createUser = async (req, res) => {
       username,
       email,
       password: hashedPassword,
+    });
+
+    await logActivity({
+      userId: newUser._id,
+      action: 'register',
+      req,
     });
 
     const accessToken = jwt.sign({ id: newUser._id }, ACCESS_SECRET, {
@@ -110,7 +115,6 @@ export const loginUser = async (req, res) => {
       .json({ error: 'Email, Password, and recaptchaToken required' });
   }
 
-  // Verify reCAPTCHA token first
   const recaptchaResponse = await verifyRecaptcha(recaptchaToken);
 
   if (!recaptchaResponse.success) {
@@ -146,6 +150,12 @@ export const loginUser = async (req, res) => {
 
     setAuthCookies(res, accessToken, refreshToken);
 
+    await logActivity({
+      userId: existingUser._id,
+      action: 'login',
+      req,
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Login successful',
@@ -163,11 +173,9 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// PATCH USER (update)
+// PATCH USER
 export const updateUser = async (req, res) => {
   const { username, email } = req.body;
-
-  // Determine which user to update: admin can update any user, else update self
   let userId = req.user._id;
   if (req.user.role === 'admin' && req.params.id) {
     userId = req.params.id;
@@ -182,7 +190,6 @@ export const updateUser = async (req, res) => {
   }
 
   try {
-    // Check if email is already taken by another user
     const emailTaken = await User.findOne({ email, _id: { $ne: userId } });
     if (emailTaken) {
       return res.status(409).json({ error: 'Email is already in use' });
@@ -197,6 +204,12 @@ export const updateUser = async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({ error: 'User not found' });
     }
+
+    await logActivity({
+      userId,
+      action: 'update_user',
+      req,
+    });
 
     res.status(200).json({
       success: true,
@@ -223,7 +236,6 @@ export const refreshToken = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, REFRESH_SECRET);
-
     const user = await User.findOne({
       _id: decoded.id,
       isDeleted: false,
@@ -237,20 +249,23 @@ export const refreshToken = async (req, res) => {
       expiresIn: '15m',
     });
 
-    // Send new access token as cookie
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
       secure: NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict',
       maxAge: 15 * 60 * 1000,
       path: '/',
     });
 
+    await logActivity({
+      userId: user._id,
+      action: 'refresh_token',
+      req,
+    });
+
     return res.status(200).json({
       success: true,
-      data: {
-        user,
-      },
+      data: { user },
     });
   } catch (err) {
     return res.status(403).json({ error: 'Invalid refresh token' });
@@ -258,56 +273,63 @@ export const refreshToken = async (req, res) => {
 };
 
 // LOGOUT
-export const logoutUser = (req, res) => {
+export const logoutUser = async (req, res) => {
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     path: '/',
   });
   res.clearCookie('accessToken', {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     path: '/',
   });
+
+  await logActivity({
+    userId: req.user._id,
+    action: 'logout',
+    req,
+  });
+
   res.status(200).json({ message: 'Logged out successfully' });
 };
 
-// PASSWORD RECOVER (with artificial delay)
+// PASSWORD RECOVER
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
     const user = await User.findOne({ email });
 
-    // Artificial delay to avoid timing attacks
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    if (!user) {
-      return res
-        .status(200)
-        .json({ message: 'If that email exists, a reset link will be sent.' });
+    if (user) {
+      const secret = ACCESS_SECRET + user.password;
+      const token = jwt.sign({ id: user._id }, secret, { expiresIn: '15m' });
+      const link = `${FRONTEND_URL}/reset-password/${user._id}/${token}`;
+
+      await sendEmail(
+        user.email,
+        'Password Reset',
+        `
+        <h3>Password Reset</h3>
+        <p>Click the link below to reset your password. It expires in 15 minutes.</p>
+        <a href="${link}">${link}</a>
+      `
+      );
+
+      await logActivity({
+        userId: user._id,
+        action: 'forgot_password',
+        req,
+      });
     }
 
-    const secret = ACCESS_SECRET + user.password;
-    const token = jwt.sign({ id: user._id }, secret, { expiresIn: '15m' });
-
-    const link = `${FRONTEND_URL}/reset-password/${user._id}/${token}`;
-
-    await sendEmail(
-      user.email,
-      'Password Reset',
-      `
-      <h3>Password Reset</h3>
-      <p>Click the link below to reset your password. It expires in 15 minutes.</p>
-      <a href="${link}">${link}</a>
-    `
-    );
-
-    return res
-      .status(200)
-      .json({ message: 'If that email exists, a reset link will be sent.' });
+    return res.status(200).json({
+      message: 'If that email exists, a reset link will be sent.',
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Something went wrong' });
@@ -328,13 +350,19 @@ export const resetPassword = async (req, res) => {
     if (!user) return res.status(400).json({ error: 'Invalid user' });
 
     const secret = ACCESS_SECRET + user.password;
-
     jwt.verify(token, secret);
 
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
 
     await user.save();
+
+    await logActivity({
+      userId: user._id,
+      action: 'reset_password',
+      req,
+    });
+
     res.status(200).json({ message: 'Password successfully updated' });
   } catch (err) {
     console.error(err);
@@ -366,6 +394,12 @@ export const changePassword = async (req, res) => {
     user.password = hashedNewPassword;
     await user.save();
 
+    await logActivity({
+      userId,
+      action: 'change_password',
+      req,
+    });
+
     res.status(200).json({ message: 'Password successfully changed' });
   } catch (error) {
     console.error('Change password error:', error);
@@ -396,12 +430,19 @@ export const deleteUser = async (req, res) => {
       {
         isDeleted: true,
         deletedAt: new Date(),
-        canRestore: isOwner, // user-deleted = true, admin-deleted = false
+        canRestore: isOwner,
       },
       { new: true }
     );
 
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'soft_delete_user',
+      req,
+      details: { deletedUserId: user._id },
+    });
 
     return res.status(200).json({ message: 'User soft deleted successfully' });
   } catch (error) {
@@ -447,6 +488,13 @@ export const restoreUser = async (req, res) => {
 
     await user.save();
 
+    await logActivity({
+      userId: req.user._id,
+      action: 'restore_user',
+      req,
+      details: { restoredUserId: user._id },
+    });
+
     return res
       .status(200)
       .json({ message: 'User restored successfully', data: user });
@@ -459,10 +507,16 @@ export const restoreUser = async (req, res) => {
 // GET USERS
 export const getUsers = async (req, res) => {
   try {
-    // Only fetch users who are not soft deleted
     const users = await User.find({ isDeleted: false }).select(
       'username email createdAt'
     );
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'get_users',
+      req,
+    });
+
     res.status(200).json({ data: users });
   } catch (error) {
     console.error('Get users error:', error);

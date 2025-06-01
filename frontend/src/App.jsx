@@ -17,7 +17,7 @@ import {
   Terms,
   Settings,
 } from './pages';
-import { refreshUser, logoutUser } from './redux/userSlice';
+import { refreshUser } from './redux/userSlice';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -46,14 +46,18 @@ const router = createBrowserRouter([
 
 const App = () => {
   const dispatch = useDispatch();
+  const authChecked = useSelector((state) => state.user.authChecked);
 
   useEffect(() => {
-    dispatch(refreshUser())
-      .unwrap()
-      .catch(() => {
-        dispatch(logoutUser());
-      });
+    dispatch(refreshUser()).catch(() => {
+      // swallow error quietly
+    });
   }, [dispatch]);
+
+  if (!authChecked) {
+    // You can render a loading spinner here or nothing until we know auth status
+    return <div>Loading...</div>;
+  }
 
   return (
     <>

@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 import Blog from '../models/Blog.js';
+import logActivity from '../utils/logActivity.js';
 
-// CREATE POST DUPLICATED INDEX VERIFICATION IS TRUE
+// CREATE POST
 export const createPost = async (req, res) => {
   const { title, body } = req.body;
 
@@ -18,6 +19,11 @@ export const createPost = async (req, res) => {
 
     const savedPost = await newPost.save();
     const populatedPost = await savedPost.populate('author', '_id username');
+
+    await logActivity(req.user._id, 'create_post', req, {
+      postId: savedPost._id,
+      title,
+    });
 
     res.status(201).json({ success: true, data: populatedPost });
   } catch (error) {
@@ -68,6 +74,11 @@ export const patchPost = async (req, res) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
+    await logActivity(req.user._id, 'update_post', req, {
+      postId,
+      updatedFields: Object.keys(updateData),
+    });
+
     res.status(200).json({ success: true, data: updatedPost });
   } catch (error) {
     console.error('Patch post error:', error);
@@ -75,14 +86,14 @@ export const patchPost = async (req, res) => {
   }
 };
 
-// GET POSTS ALL POSTS with optional title filter
+// GET POSTS ALL with optional title filter
 export const getPosts = async (req, res) => {
   try {
     const { title } = req.query;
 
     const query = { isDeleted: false };
     if (title) {
-      query.title = { $regex: title, $options: 'i' }; // case-insensitive partial match
+      query.title = { $regex: title, $options: 'i' };
     }
 
     const posts = await Blog.find(query).populate('author', 'username');
@@ -110,6 +121,7 @@ export const getPostById = async (req, res) => {
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
+
     return res.status(200).json({ success: true, data: post });
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
@@ -125,7 +137,6 @@ export const deletePost = async (req, res) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    // Check ownership or admin
     const isOwner = post.author.toString() === req.user._id.toString();
     const isAdmin = req.user.role === 'admin';
 
@@ -139,10 +150,14 @@ export const deletePost = async (req, res) => {
       return res.status(400).json({ error: 'Post already deleted' });
     }
 
-    // Soft delete
     post.isDeleted = true;
     post.deletedAt = new Date();
     await post.save();
+
+    await logActivity(req.user._id, 'delete_post', req, {
+      postId: post._id,
+      title: post.title,
+    });
 
     res
       .status(200)
@@ -161,7 +176,6 @@ export const restorePost = async (req, res) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    // Check ownership or admin
     const isOwner = post.author.toString() === req.user._id.toString();
     const isAdmin = req.user.role === 'admin';
 
@@ -178,6 +192,11 @@ export const restorePost = async (req, res) => {
     post.isDeleted = false;
     post.deletedAt = null;
     await post.save();
+
+    await logActivity(req.user._id, 'restore_post', req, {
+      postId: post._id,
+      title: post.title,
+    });
 
     res
       .status(200)
@@ -207,6 +226,12 @@ export const getPostsByUser = async (req, res) => {
     }
 
     const posts = await Blog.find(query).populate('author', 'username');
+
+    await logActivity(req.user._id, 'view_user_posts', req, {
+      viewedUserId: userId,
+      filter: title || null,
+    });
+
     res.status(200).json({ success: true, data: posts });
   } catch (error) {
     console.error('Fetch posts by user error:', error);
