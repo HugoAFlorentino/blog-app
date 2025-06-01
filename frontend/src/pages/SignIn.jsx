@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { signInUser } from '../redux/userSlice';
+import { signInUser, clearMessage } from '../redux/userSlice'; // Use clearMessage here
 import { toast } from 'react-toastify';
 
 const loadReCaptchaScript = () => {
@@ -34,8 +34,8 @@ const loadReCaptchaScript = () => {
 
 const SignIn = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [recaptchaReady, setRecaptchaReady] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState('');
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -43,19 +43,30 @@ const SignIn = () => {
 
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
+  // Clear any stale errors or messages on mount
+  useEffect(() => {
+    dispatch(clearMessage());
+  }, [dispatch]);
+
+  // Redirect if already signed in
   useEffect(() => {
     if (currentUser) {
       navigate('/');
     }
   }, [currentUser, navigate]);
 
+  // Show toast only after user submits and if there is an error
+  useEffect(() => {
+    if (error && hasSubmitted) {
+      toast.error(error);
+    }
+  }, [error, hasSubmitted]);
+
   // Load & render reCAPTCHA widget
   useEffect(() => {
     loadReCaptchaScript()
       .then((grecaptcha) => {
         grecaptcha.ready(() => {
-          setRecaptchaReady(true);
-          // Prevent double render error by checking if widget is already rendered
           if (!document.getElementById('recaptcha-container').hasChildNodes()) {
             grecaptcha.render('recaptcha-container', {
               sitekey: siteKey,
@@ -76,24 +87,24 @@ const SignIn = () => {
   }, [siteKey]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.id]: e.target.value,
-    });
+    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setHasSubmitted(true);
 
     if (!recaptchaToken) {
       toast.error('Please complete the reCAPTCHA challenge.');
       return;
     }
 
-    dispatch(signInUser({ ...formData, recaptchaToken }))
-      .unwrap()
-      .then(() => navigate('/'))
-      .catch(() => {});
+    try {
+      await dispatch(signInUser({ ...formData, recaptchaToken })).unwrap();
+      navigate('/');
+    } catch {
+      // error toast handled in useEffect
+    }
   };
 
   return (
@@ -115,6 +126,7 @@ const SignIn = () => {
               className='w-full px-4 py-2 rounded bg-background text-text border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary'
               required
               disabled={loading}
+              autoComplete='email'
             />
           </div>
 
@@ -131,12 +143,15 @@ const SignIn = () => {
               className='w-full px-4 py-2 rounded bg-background text-text border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary'
               required
               disabled={loading}
+              autoComplete='current-password'
             />
           </div>
 
           <div id='recaptcha-container' className='mt-4' />
 
-          {error && <p className='text-red-500 text-sm mt-2'>{error}</p>}
+          {error && hasSubmitted && (
+            <p className='text-red-500 text-sm mt-2'>{error}</p>
+          )}
 
           <button
             type='submit'
@@ -157,12 +172,12 @@ const SignIn = () => {
                   r='10'
                   stroke='currentColor'
                   strokeWidth='4'
-                ></circle>
+                />
                 <path
                   className='opacity-75'
                   fill='currentColor'
                   d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                ></path>
+                />
               </svg>
             )}
             {loading ? 'Signing In...' : 'Sign In'}

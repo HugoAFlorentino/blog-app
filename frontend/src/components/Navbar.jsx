@@ -148,7 +148,7 @@ const Navbar = () => {
                 <li
                   key={post._id}
                   onClick={() => handleResultClick(post._id)}
-                  className='cursor-pointer px-3 py-2 hover:bg-primary hover:text-white transition'
+                  className='cursor-pointer px-3 py-2 hover:bg-primary hover:text-white border-primary border-b-2 transition'
                 >
                   {post.title}
                 </li>

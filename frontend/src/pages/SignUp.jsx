@@ -58,12 +58,11 @@ const SignUp = () => {
     loadReCaptchaScript()
       .then((grecaptcha) => {
         grecaptcha.ready(() => {
-          // Avoid re-rendering if already rendered
           if (widgetIdRef.current !== null) return;
 
           widgetIdRef.current = grecaptcha.render('recaptcha-container', {
             sitekey: siteKey,
-            size: 'normal', // visible checkbox
+            size: 'normal',
             callback: (token) => {
               setRecaptchaToken(token);
             },
@@ -86,6 +85,23 @@ const SignUp = () => {
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
+
+      const { username, email, password } = formData;
+
+      if (!username || username.trim().length < 3) {
+        toast.error('Username must be at least 3 characters long.');
+        return;
+      }
+
+      if (!email || !email.includes('@')) {
+        toast.error('Please enter a valid email address.');
+        return;
+      }
+
+      if (!password || password.length < 8) {
+        toast.error('Password must be at least 8 characters long.');
+        return;
+      }
 
       if (!recaptchaToken) {
         toast.error('Please complete the reCAPTCHA challenge.');
