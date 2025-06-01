@@ -189,7 +189,7 @@ const Blogs = () => {
 
         {/* Sidebar */}
         <aside className='space-y-6'>
-          <div className='bg-background p-6 rounded-lg shadow'>
+          <div className='bg-white dark:bg-neutral p-6 rounded-lg shadow'>
             <h4 className='text-xl font-heading font-semibold mb-2'>
               Subscribe to our Newsletter
             </h4>
@@ -199,9 +199,9 @@ const Blogs = () => {
             <input
               type='email'
               placeholder='you@example.com'
-              className='w-full px-4 py-2 rounded mb-3 border border-secondary focus:outline-none'
+              className='bg-white dark:bg-neutral w-full px-4 py-2 rounded mb-3 border border-secondary focus:outline-none'
             />
-            <button className='w-full bg-primary text-white py-2 rounded hover:bg-opacity-90 transition'>
+            <button className='w-full bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition'>
               Subscribe
             </button>
           </div>

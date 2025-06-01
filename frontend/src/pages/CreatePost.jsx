@@ -101,7 +101,7 @@ const CreatePost = () => {
         <button
           type='submit'
           disabled={loading}
-          className='bg-primary text-white px-6 py-3 rounded font-semibold hover:bg-opacity-90 transition'
+          className='bg-primary text-text px-6 py-3  rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition'
         >
           {loading ? 'Creating...' : 'Create Post'}
         </button>

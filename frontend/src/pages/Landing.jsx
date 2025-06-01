@@ -30,7 +30,7 @@ const Landing = () => {
     <div className='px-4 md:px-12 max-w-7xl mx-auto'>
       {/* Hero */}
       <motion.section
-        className='bg-primary text-white rounded-2xl p-10 text-center mb-12 shadow-md'
+        className='bg-primary text-text rounded-2xl p-10 text-center mb-12 shadow-md'
         initial='hidden'
         animate='visible'
         variants={fadeUp}
@@ -42,7 +42,7 @@ const Landing = () => {
           Insights, stories, and updates from the world of tech and design.
         </p>
         <motion.button
-          className='bg-white text-primary px-6 py-2 rounded-full font-semibold hover:bg-neutral transition'
+          className='bg-background text-primary px-6 py-2 rounded-full font-semibold hover:bg-neutral transition'
           whileHover={{ scale: 1.05 }}
           onClick={() => navigate('/blogs')}
         >
@@ -76,7 +76,7 @@ const Landing = () => {
         variants={fadeUp}
         custom={0.3}
       >
-        <div className='bg-background rounded-xl overflow-hidden shadow-lg flex flex-col md:flex-row'>
+        <div className='bg-white dark:bg-neutral rounded-xl overflow-hidden shadow-lg flex flex-col md:flex-row'>
           <motion.img
             src='https://source.unsplash.com/800x500/?technology,code'
             alt='Featured'
