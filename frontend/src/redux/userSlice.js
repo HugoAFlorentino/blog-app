@@ -1,13 +1,27 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import api from '../utils/axios';
 
-// Fetch all users (to be able to filter by author)
+// Helper to handle API responses according to your backend standard
+const handleApiResponse = (res, thunkAPI) => {
+  if (res.data.status === 'success') {
+    return res.data.data;
+  } else {
+    return thunkAPI.rejectWithValue(
+      res.data.error || res.data.message || 'Unknown error'
+    );
+  }
+};
+
+// Fetch all users
 export const fetchUsers = createAsyncThunk(
   'user/fetchUsers',
-  async (_, thunkAPI) => {
+  async ({ includeDeleted = false } = {}, thunkAPI) => {
     try {
-      const res = await api.get('/users', { withCredentials: true });
-      return res.data.data; // assuming array of users is here
+      const res = await api.get('/users', {
+        withCredentials: true,
+        params: { includeDeleted },
+      });
+      return handleApiResponse(res, thunkAPI);
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || err.message || 'Failed to fetch users'
@@ -23,14 +37,18 @@ export const signInUser = createAsyncThunk(
     try {
       const res = await api.post(
         '/users/signin',
-        { email, password, recaptchaToken }, // pass recaptchaToken here
+        { email, password, recaptchaToken },
         { withCredentials: true }
       );
-      return res.data.data.user;
+      const data = await handleApiResponse(res, thunkAPI);
+      return data.user; // user inside data
     } catch (err) {
-      const message =
-        err.response?.data?.message || err.message || 'Something went wrong';
-      return thunkAPI.rejectWithValue(message);
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          'Something went wrong'
+      );
     }
   }
 );
@@ -45,27 +63,33 @@ export const signUpUser = createAsyncThunk(
         { username, email, password, recaptchaToken },
         { withCredentials: true }
       );
-      return res.data.data.user;
+      const data = await handleApiResponse(res, thunkAPI);
+      return data.user;
     } catch (err) {
-      // err.response.data.error per backend structure
-      return thunkAPI.rejectWithValue(err.response?.data?.error || err.message);
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          'Sign up failed'
+      );
     }
   }
 );
 
-// Refresh user (using cookie-based refresh token)
+// Refresh user
 export const refreshUser = createAsyncThunk(
   'user/refreshUser',
   async (_, thunkAPI) => {
     try {
       const res = await api.get('/users/refresh', { withCredentials: true });
-      return res.data.data.user;
+      const data = await handleApiResponse(res, thunkAPI);
+      return data.user;
     } catch (err) {
       if (err.response?.status === 401) {
         return thunkAPI.rejectWithValue('Not authenticated');
       }
       return thunkAPI.rejectWithValue(
-        err.response?.data?.message || err.message
+        err.response?.data?.message || err.message || 'Failed to refresh user'
       );
     }
   }
@@ -76,10 +100,13 @@ export const logoutUser = createAsyncThunk(
   'user/logoutUser',
   async (_, thunkAPI) => {
     try {
-      await api.post('/users/logout', null, { withCredentials: true });
+      const res = await api.post('/users/logout', null, {
+        withCredentials: true,
+      });
+      return handleApiResponse(res, thunkAPI);
     } catch (err) {
       return thunkAPI.rejectWithValue(
-        err.response?.data?.message || err.message
+        err.response?.data?.message || err.message || 'Logout failed'
       );
     }
   }
@@ -91,9 +118,17 @@ export const forgotPassword = createAsyncThunk(
   async (email, thunkAPI) => {
     try {
       const res = await api.post('/auth/reset-password', { email });
-      return (
-        res.data.message || 'If the email exists, a reset link has been sent.'
-      );
+      if (res.data.status === 'success') {
+        return (
+          res.data.message || 'If the email exists, a reset link has been sent.'
+        );
+      } else {
+        return thunkAPI.rejectWithValue(
+          res.data.error ||
+            res.data.message ||
+            'Failed to send reset password email.'
+        );
+      }
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || 'Something went wrong. Try again later.'
@@ -110,7 +145,13 @@ export const resetPassword = createAsyncThunk(
       const res = await api.post(`/auth/reset-password/${id}/${token}`, {
         password,
       });
-      return res.data.message || 'Password successfully reset.';
+      if (res.data.status === 'success') {
+        return res.data.message || 'Password successfully reset.';
+      } else {
+        return thunkAPI.rejectWithValue(
+          res.data.error || res.data.message || 'Invalid or expired token.'
+        );
+      }
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || 'Invalid or expired token.'
@@ -124,20 +165,20 @@ export const updateUser = createAsyncThunk(
   'user/updateUser',
   async ({ username, email, isAdmin }, thunkAPI) => {
     try {
-      // Send isAdmin if needed (assuming admin only allowed this)
       const res = await api.patch(
         '/users/profile/update',
         { username, email, isAdmin },
         { withCredentials: true }
       );
-      return res.data.data; // updated user object
+      const data = await handleApiResponse(res, thunkAPI);
+      return data; // updated user object
     } catch (err) {
-      const message =
+      return thunkAPI.rejectWithValue(
         err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.message ||
-        'Failed to update user';
-      return thunkAPI.rejectWithValue(message);
+          err.response?.data?.message ||
+          err.message ||
+          'Failed to update user'
+      );
     }
   }
 );
@@ -152,7 +193,13 @@ export const changePassword = createAsyncThunk(
         { currentPassword, newPassword },
         { withCredentials: true }
       );
-      return res.data.message || 'Password changed successfully';
+      if (res.data.status === 'success') {
+        return res.data.message || 'Password changed successfully';
+      } else {
+        return thunkAPI.rejectWithValue(
+          res.data.error || res.data.message || 'Failed to change password'
+        );
+      }
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || 'Failed to change password'
@@ -161,7 +208,7 @@ export const changePassword = createAsyncThunk(
   }
 );
 
-// Soft delete user by ID (admin only)
+// Soft delete user by ID
 export const deleteUser = createAsyncThunk(
   'user/deleteUser',
   async (id, thunkAPI) => {
@@ -169,7 +216,8 @@ export const deleteUser = createAsyncThunk(
       const res = await api.patch(`/users/delete/${id}`, null, {
         withCredentials: true,
       });
-      return res.data.data; // deleted user data or confirmation
+      const data = await handleApiResponse(res, thunkAPI);
+      return data;
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || err.message || 'Failed to delete user'
@@ -178,7 +226,7 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
-// Restore deleted user by ID (admin only)
+// Restore deleted user by ID
 export const restoreUser = createAsyncThunk(
   'user/restoreUser',
   async (id, thunkAPI) => {
@@ -186,7 +234,8 @@ export const restoreUser = createAsyncThunk(
       const res = await api.patch(`/users/restore/${id}`, null, {
         withCredentials: true,
       });
-      return res.data.data; // restored user data
+      const data = await handleApiResponse(res, thunkAPI);
+      return data;
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || err.message || 'Failed to restore user'
@@ -195,17 +244,17 @@ export const restoreUser = createAsyncThunk(
   }
 );
 
-// GET USER BY ID
+// Get user by ID
 export const getUserById = createAsyncThunk(
   'user/getUserById',
   async (id, thunkAPI) => {
     try {
       const res = await api.get(`/users/${id}`, { withCredentials: true });
-      return res.data.data; // assuming user data is in data.data
+      return handleApiResponse(res, thunkAPI);
     } catch (err) {
-      const message =
-        err.response?.data?.message || err.message || 'Failed to fetch user';
-      return thunkAPI.rejectWithValue(message);
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || err.message || 'Failed to fetch user'
+      );
     }
   }
 );
@@ -218,8 +267,8 @@ const userSlice = createSlice({
     error: null,
     message: null,
     viewedUser: null,
-    users: [], // <-- all fetched users
-    authorFilter: '', // <-- filter string for author
+    users: [],
+    authorFilter: '',
     authChecked: false,
   },
   reducers: {
@@ -239,7 +288,7 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all users
+      // fetchUsers
       .addCase(fetchUsers.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -394,13 +443,12 @@ const userSlice = createSlice({
         state.loading = false;
         state.message = 'User deleted successfully';
         state.error = null;
-
-        if (state.currentUser?.id === action.payload?.id) {
-          state.currentUser = null;
+        const idx = state.users.findIndex(
+          (u) => u && u._id === action.payload?._id
+        );
+        if (idx !== -1) {
+          state.users[idx] = action.payload;
         }
-
-        // Also remove deleted user from users array
-        state.users = state.users.filter((u) => u.id !== action.payload?.id);
       })
       .addCase(deleteUser.rejected, (state, action) => {
         state.loading = false;
@@ -417,12 +465,6 @@ const userSlice = createSlice({
         state.loading = false;
         state.message = 'User restored successfully';
         state.error = null;
-
-        if (state.currentUser?.id === action.payload?.id) {
-          state.currentUser = action.payload;
-        }
-
-        // Add restored user back to users array or update it
         const idx = state.users.findIndex((u) => u.id === action.payload?.id);
         if (idx !== -1) {
           state.users[idx] = action.payload;
@@ -439,7 +481,6 @@ const userSlice = createSlice({
       .addCase(getUserById.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.viewedUser = null;
       })
       .addCase(getUserById.fulfilled, (state, action) => {
         state.loading = false;
@@ -449,20 +490,10 @@ const userSlice = createSlice({
       .addCase(getUserById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.viewedUser = null;
       });
   },
 });
 
-// Selector to get filtered users by authorFilter
-export const selectFilteredUsers = (state) => {
-  if (!state.user.authorFilter) return state.user.users;
-  return state.user.users.filter((user) =>
-    user.username.toLowerCase().includes(state.user.authorFilter.toLowerCase())
-  );
-};
-
 export const { logout, clearMessage, setAuthorFilter, clearAuthorFilter } =
   userSlice.actions;
-
 export default userSlice.reducer;

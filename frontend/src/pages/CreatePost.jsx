@@ -73,7 +73,7 @@ const CreatePost = () => {
             id='title'
             type='text'
             placeholder='Enter blog title'
-            className='w-full rounded border border-secondary p-3 text-text placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-primary'
+            className='w-full bg-white dark:bg-neutral rounded border border-secondary p-3 text-text placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-primary'
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
@@ -91,7 +91,7 @@ const CreatePost = () => {
             id='body'
             rows={10}
             placeholder='Write your blog content here...'
-            className='w-full rounded border border-secondary p-3 text-text placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-primary resize-vertical'
+            className='w-full bg-white dark:bg-neutral rounded border border-secondary p-3 text-text placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-primary resize-vertical'
             value={body}
             onChange={(e) => setBody(e.target.value)}
             required

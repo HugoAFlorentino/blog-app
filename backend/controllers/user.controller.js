@@ -37,15 +37,18 @@ export const createUser = async (req, res) => {
   const { username, email, password, recaptchaToken } = req.body;
 
   if (!username || !email || !password || !recaptchaToken) {
-    return res
-      .status(400)
-      .json({ error: 'All fields and recaptchaToken must be provided' });
+    return res.status(400).json({
+      status: 'error',
+      error: 'All fields and recaptchaToken must be provided',
+    });
   }
 
   const recaptchaResponse = await verifyRecaptcha(recaptchaToken);
 
   if (!recaptchaResponse.success) {
-    return res.status(400).json({ error: 'reCAPTCHA verification failed' });
+    return res
+      .status(400)
+      .json({ status: 'error', error: 'reCAPTCHA verification failed' });
   }
 
   try {
@@ -56,10 +59,14 @@ export const createUser = async (req, res) => {
 
     if (existingUser) {
       if (existingUser.email === email) {
-        return res.status(409).json({ error: 'Email already exists' });
+        return res
+          .status(409)
+          .json({ status: 'error', error: 'Email already exists' });
       }
       if (existingUser.username === username) {
-        return res.status(409).json({ error: 'Username already exists' });
+        return res
+          .status(409)
+          .json({ status: 'error', error: 'Username already exists' });
       }
     }
 
@@ -89,6 +96,7 @@ export const createUser = async (req, res) => {
     setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(201).json({
+      status: 'success',
       success: true,
       message: 'User created successfully',
       data: {
@@ -96,12 +104,13 @@ export const createUser = async (req, res) => {
           id: newUser._id,
           username: newUser.username,
           email: newUser.email,
+          status: newUser.isDeleted ? 'deleted' : 'active',
         },
       },
     });
   } catch (error) {
     console.error('User creation failed:', error);
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ status: 'error', error: 'Server error' });
   }
 };
 
@@ -110,26 +119,33 @@ export const loginUser = async (req, res) => {
   const { email, password, recaptchaToken } = req.body;
 
   if (!email || !password || !recaptchaToken) {
-    return res
-      .status(400)
-      .json({ error: 'Email, Password, and recaptchaToken required' });
+    return res.status(400).json({
+      status: 'error',
+      error: 'Email, Password, and recaptchaToken required',
+    });
   }
 
   const recaptchaResponse = await verifyRecaptcha(recaptchaToken);
 
   if (!recaptchaResponse.success) {
-    return res.status(400).json({ error: 'reCAPTCHA verification failed' });
+    return res
+      .status(400)
+      .json({ status: 'error', error: 'reCAPTCHA verification failed' });
   }
 
   try {
     const existingUser = await User.findOne({ email });
 
     if (!existingUser) {
-      return res.status(404).json({ error: 'User does not exist' });
+      return res
+        .status(404)
+        .json({ status: 'error', error: 'User does not exist' });
     }
 
     if (existingUser.isDeleted) {
-      return res.status(403).json({ error: 'This account has been disabled' });
+      return res
+        .status(403)
+        .json({ status: 'error', error: 'This account has been disabled' });
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -137,7 +153,9 @@ export const loginUser = async (req, res) => {
       existingUser.password
     );
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res
+        .status(401)
+        .json({ status: 'error', error: 'Invalid credentials' });
     }
 
     const accessToken = jwt.sign({ id: existingUser._id }, ACCESS_SECRET, {
@@ -157,6 +175,7 @@ export const loginUser = async (req, res) => {
     });
 
     return res.status(200).json({
+      status: 'success',
       success: true,
       message: 'Login successful',
       data: {
@@ -164,12 +183,13 @@ export const loginUser = async (req, res) => {
           id: existingUser._id,
           username: existingUser.username,
           email: existingUser.email,
+          status: existingUser.isDeleted ? 'deleted' : 'active',
         },
       },
     });
   } catch (error) {
     console.error('Login failed:', error);
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ status: 'error', error: 'Server error' });
   }
 };
 
@@ -182,17 +202,21 @@ export const updateUser = async (req, res) => {
   }
 
   if (!username || !email) {
-    return res.status(400).json({ error: 'All fields must be provided' });
+    return res
+      .status(400)
+      .json({ status: 'error', error: 'All fields must be provided' });
   }
 
   if (!isValidObjectId(userId)) {
-    return res.status(400).json({ error: 'Invalid user ID' });
+    return res.status(400).json({ status: 'error', error: 'Invalid user ID' });
   }
 
   try {
     const emailTaken = await User.findOne({ email, _id: { $ne: userId } });
     if (emailTaken) {
-      return res.status(409).json({ error: 'Email is already in use' });
+      return res
+        .status(409)
+        .json({ status: 'error', error: 'Email is already in use' });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -202,7 +226,7 @@ export const updateUser = async (req, res) => {
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ status: 'error', error: 'User not found' });
     }
 
     await logActivity({
@@ -212,6 +236,7 @@ export const updateUser = async (req, res) => {
     });
 
     res.status(200).json({
+      status: 'success',
       success: true,
       message: 'User updated successfully',
       data: {
@@ -222,7 +247,7 @@ export const updateUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Update user error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ status: 'error', error: 'Server error' });
   }
 };
 
@@ -231,7 +256,7 @@ export const refreshToken = async (req, res) => {
   const token = req.cookies.refreshToken;
 
   if (!token) {
-    return res.status(401).json({ error: 'No refresh token' });
+    return res.status(401).json({ status: 'error', error: 'No refresh token' });
   }
 
   try {
@@ -242,7 +267,7 @@ export const refreshToken = async (req, res) => {
     }).select('-password');
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ status: 'error', error: 'User not found' });
     }
 
     const newAccessToken = jwt.sign({ id: user._id }, ACCESS_SECRET, {
@@ -264,11 +289,14 @@ export const refreshToken = async (req, res) => {
     });
 
     return res.status(200).json({
+      status: 'success',
       success: true,
       data: { user },
     });
   } catch (err) {
-    return res.status(403).json({ error: 'Invalid refresh token' });
+    return res
+      .status(403)
+      .json({ status: 'error', error: 'Invalid refresh token' });
   }
 };
 
@@ -293,7 +321,9 @@ export const logoutUser = async (req, res) => {
     req,
   });
 
-  res.status(200).json({ message: 'Logged out successfully' });
+  res
+    .status(200)
+    .json({ status: 'success', message: 'Logged out successfully' });
 };
 
 // PASSWORD RECOVER
@@ -328,11 +358,14 @@ export const forgotPassword = async (req, res) => {
     }
 
     return res.status(200).json({
+      status: 'success',
       message: 'If that email exists, a reset link will be sent.',
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: 'Something went wrong' });
+    return res
+      .status(500)
+      .json({ status: 'error', error: 'Something went wrong' });
   }
 };
 
@@ -342,12 +375,13 @@ export const resetPassword = async (req, res) => {
   const { password } = req.body;
 
   if (!isValidObjectId(id)) {
-    return res.status(400).json({ error: 'Invalid user ID' });
+    return res.status(400).json({ status: 'error', error: 'Invalid user ID' });
   }
 
   try {
     const user = await User.findById(id);
-    if (!user) return res.status(400).json({ error: 'Invalid user' });
+    if (!user)
+      return res.status(400).json({ status: 'error', error: 'Invalid user' });
 
     const secret = ACCESS_SECRET + user.password;
     jwt.verify(token, secret);
@@ -363,10 +397,14 @@ export const resetPassword = async (req, res) => {
       req,
     });
 
-    res.status(200).json({ message: 'Password successfully updated' });
+    res
+      .status(200)
+      .json({ status: 'success', message: 'Password successfully updated' });
   } catch (err) {
     console.error(err);
-    res.status(400).json({ error: 'Invalid or expired token' });
+    res
+      .status(400)
+      .json({ status: 'error', error: 'Invalid or expired token' });
   }
 };
 
@@ -376,18 +414,22 @@ export const changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
-    return res
-      .status(400)
-      .json({ error: 'Current and new password are required' });
+    return res.status(400).json({
+      status: 'error',
+      error: 'Current and new password are required',
+    });
   }
 
   try {
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user)
+      return res.status(404).json({ status: 'error', error: 'User not found' });
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Current password is incorrect' });
+      return res
+        .status(401)
+        .json({ status: 'error', error: 'Current password is incorrect' });
     }
 
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
@@ -400,10 +442,12 @@ export const changePassword = async (req, res) => {
       req,
     });
 
-    res.status(200).json({ message: 'Password successfully changed' });
+    res
+      .status(200)
+      .json({ status: 'success', message: 'Password successfully changed' });
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ status: 'error', error: 'Server error' });
   }
 };
 
@@ -412,16 +456,17 @@ export const deleteUser = async (req, res) => {
   const { id } = req.params;
 
   if (!isValidObjectId(id)) {
-    return res.status(400).json({ error: 'Invalid user ID' });
+    return res.status(400).json({ status: 'error', error: 'Invalid user ID' });
   }
 
   const isAdmin = req.user.role === 'admin';
   const isOwner = req.user._id.toString() === id;
 
   if (!isAdmin && !isOwner) {
-    return res
-      .status(403)
-      .json({ error: 'Forbidden: Not allowed to delete this user' });
+    return res.status(403).json({
+      status: 'error',
+      error: 'Forbidden: Not allowed to delete this user',
+    });
   }
 
   try {
@@ -435,7 +480,8 @@ export const deleteUser = async (req, res) => {
       { new: true }
     );
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user)
+      return res.status(404).json({ status: 'error', error: 'User not found' });
 
     await logActivity({
       userId: req.user._id,
@@ -444,10 +490,12 @@ export const deleteUser = async (req, res) => {
       details: { deletedUserId: user._id },
     });
 
-    return res.status(200).json({ message: 'User soft deleted successfully' });
+    return res
+      .status(200)
+      .json({ status: 'success', message: 'User soft deleted successfully' });
   } catch (error) {
     console.error('Delete user error:', error);
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ status: 'error', error: 'Server error' });
   }
 };
 
@@ -456,25 +504,28 @@ export const restoreUser = async (req, res) => {
   const { id } = req.params;
 
   if (!isValidObjectId(id)) {
-    return res.status(400).json({ error: 'Invalid user ID' });
+    return res.status(400).json({ status: 'error', error: 'Invalid user ID' });
   }
 
   const isAdmin = req.user.role === 'admin';
   const isOwner = req.user._id.toString() === id;
 
   if (!isAdmin && !isOwner) {
-    return res
-      .status(403)
-      .json({ error: 'Forbidden: Not allowed to restore this user' });
+    return res.status(403).json({
+      status: 'error',
+      error: 'Forbidden: Not allowed to restore this user',
+    });
   }
 
   try {
     const user = await User.findById(id);
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user)
+      return res.status(404).json({ status: 'error', error: 'User not found' });
 
     if (!user.canRestore && !isAdmin) {
       return res.status(403).json({
+        status: 'error',
         error: 'Account was disabled by an admin and cannot be restored',
       });
     }
@@ -495,20 +546,27 @@ export const restoreUser = async (req, res) => {
       details: { restoredUserId: user._id },
     });
 
-    return res
-      .status(200)
-      .json({ message: 'User restored successfully', data: user });
+    return res.status(200).json({
+      status: 'success',
+      message: 'User restored successfully',
+      data: user,
+    });
   } catch (error) {
     console.error('Restore user error:', error);
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ status: 'error', error: 'Server error' });
   }
 };
 
 // GET USERS
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find({ isDeleted: false }).select(
-      'username email createdAt'
+    // Check query param includeDeleted (string 'true' or 'false')
+    const includeDeleted = req.query.includeDeleted === 'true';
+
+    const filter = includeDeleted ? {} : { isDeleted: false };
+
+    const users = await User.find(filter).select(
+      'username email createdAt isDeleted'
     );
 
     await logActivity({
@@ -517,9 +575,37 @@ export const getUsers = async (req, res) => {
       req,
     });
 
-    res.status(200).json({ data: users });
+    res.status(200).json({ status: 'success', data: users });
   } catch (error) {
     console.error('Get users error:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ status: 'error', error: 'Server error' });
+  }
+};
+
+// GET USER BY ID
+export const getUserById = async (req, res) => {
+  const { id } = req.params;
+
+  if (!isValidObjectId(id)) {
+    return res.status(400).json({ status: 'error', error: 'Invalid user ID' });
+  }
+
+  try {
+    const user = await User.findById(id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ status: 'error', error: 'User not found' });
+    }
+
+    await logActivity({
+      userId: req.user._id,
+      action: 'get_user_by_id',
+      req,
+    });
+
+    res.status(200).json({ status: 'success', data: user });
+  } catch (error) {
+    console.error('Get user by id error:', error);
+    res.status(500).json({ status: 'error', error: 'Server error' });
   }
 };

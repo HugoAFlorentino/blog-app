@@ -9,6 +9,7 @@ import helmet from 'helmet';
 import userRouter from './routes/usersRoutes.js';
 import blogRouter from './routes/blogRoutes.js';
 import authRouter from './routes/authRoutes.js';
+import logRouter from './routes/logRoutes.js';
 import mongoSanitize from 'express-mongo-sanitize';
 import sanitizeBody from './middleware/sanitizeBody.js';
 
@@ -42,6 +43,7 @@ app.use(
 app.use('/api/v1', userRouter);
 app.use('/api/v1', blogRouter);
 app.use('/api/v1', authRouter);
+app.use('/api/v1', logRouter);
 
 app.listen(PORT, () => {
   console.log(`server is running at port: ${PORT}`);

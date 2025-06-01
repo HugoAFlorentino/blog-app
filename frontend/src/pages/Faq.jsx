@@ -40,7 +40,7 @@ const Faq = () => {
           <div key={index} className='border border-secondary rounded-lg'>
             <button
               onClick={() => toggle(index)}
-              className='w-full flex justify-between items-center px-6 py-4 text-left font-semibold text-secondary hover:bg-primary hover:text-white rounded-lg transition'
+              className='w-full flex justify-between items-center px-6 py-4 text-left font-semibold text-text hover:bg-primary hover:text-white rounded-lg transition'
             >
               <span>{faq.question}</span>
               <svg
