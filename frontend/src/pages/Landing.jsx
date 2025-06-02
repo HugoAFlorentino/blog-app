@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllPosts } from '../redux/blogSlice.js';
 import { useNavigate } from 'react-router-dom';
+import newsData from '../utils/newsData.js';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -11,6 +12,12 @@ const fadeUp = {
     y: 0,
     transition: { delay: i * 0.1, duration: 0.6, ease: 'easeOut' },
   }),
+};
+
+const fadeInOut = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+  exit: { opacity: 0, y: -10, transition: { duration: 0.4, ease: 'easeIn' } },
 };
 
 const Landing = () => {
@@ -23,8 +30,57 @@ const Landing = () => {
     dispatch(getAllPosts());
   }, [dispatch]);
 
-  // Get last 3 posts (assuming posts sorted oldest → newest, so slice last 3 and reverse for newest first)
+  // Latest 3 posts, reversed for newest first
   const lastThreePosts = posts.slice(-3).reverse();
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const intervalRef = useRef(null);
+
+  // Slide control functions
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev === 0 ? newsData.length - 1 : prev - 1));
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev === newsData.length - 1 ? 0 : prev + 1));
+  };
+
+  // Auto slide interval setup with pause/resume support
+  useEffect(() => {
+    if (!isPaused) {
+      intervalRef.current = setInterval(() => {
+        setCurrentIndex((prev) =>
+          prev === newsData.length - 1 ? 0 : prev + 1
+        );
+      }, 3000);
+    }
+
+    return () => clearInterval(intervalRef.current);
+  }, [isPaused]);
+
+  // Pause auto-slide when tab is inactive to save CPU
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPaused(document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  const currentNews = newsData[currentIndex];
+  const nextIndex = (currentIndex + 1) % newsData.length;
+
+  // Preload next slide image for smooth transitions
+  useEffect(() => {
+    const nextImage = new Image();
+    nextImage.src = newsData[nextIndex].image;
+  }, [currentIndex, nextIndex]);
 
   return (
     <div className='px-4 md:px-12 max-w-7xl mx-auto'>
@@ -42,7 +98,7 @@ const Landing = () => {
           Insights, stories, and updates from the world of tech and design.
         </p>
         <motion.button
-          className='bg-background text-primary px-6 py-2 rounded-full font-semibold hover:bg-neutral transition'
+          className='bg-background text-text px-6 py-2 rounded-full font-semibold hover:bg-neutral transition'
           whileHover={{ scale: 1.05 }}
           onClick={() => navigate('/blogs')}
         >
@@ -52,7 +108,7 @@ const Landing = () => {
 
       {/* Highlights Bar */}
       <motion.div
-        className='flex space-x-4 overflow-x-auto mb-10 py-3 border-b border-secondary text-sm md:text-base font-medium'
+        className='flex justify-around space-x-4 overflow-x-auto mb-10 py-3 border-b border-secondary text-sm md:text-base font-medium'
         initial='hidden'
         animate='visible'
         variants={fadeUp}
@@ -68,7 +124,8 @@ const Landing = () => {
         <span className='whitespace-nowrap'>🎨 Dark Mode Best Practices</span>
       </motion.div>
 
-      {/* Featured Post */}
+      {/* Featured Post Carousel */}
+      <h3 className='text-2xl font-heading font-semibold mb-6'>Latest News</h3>
       <motion.section
         className='mb-16'
         initial='hidden'
@@ -76,30 +133,106 @@ const Landing = () => {
         variants={fadeUp}
         custom={0.3}
       >
-        <div className='bg-white dark:bg-neutral rounded-xl overflow-hidden shadow-lg flex flex-col md:flex-row'>
-          <motion.img
-            src='https://source.unsplash.com/800x500/?technology,code'
-            alt='Featured'
-            className='w-full md:w-1/2 object-cover'
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          />
-          <div className='p-6 md:w-1/2'>
-            <h2 className='text-2xl font-heading font-bold mb-2'>
-              How AI is Changing Web Development
-            </h2>
-            <p className='text-secondary mb-4'>
-              Explore how tools like GPT and automation are revolutionizing the
-              front-end workflow for developers and designers.
-            </p>
-            <button
-              className='text-primary font-semibold hover:underline'
-              onClick={() => navigate('/blogs')}
-            >
-              Read More →
-            </button>
+        <div
+          className='relative bg-white dark:bg-neutral rounded-xl overflow-hidden shadow-lg flex flex-col w-full max-w-6xl mx-auto carousel-container'
+          style={{ height: 'auto' }}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          <style>{`
+            @media (min-width: 750px) {
+              .carousel-layout {
+                flex-direction: row;
+              }
+              .carousel-img, .carousel-text {
+                width: 50%;
+                height: 500px;
+              }
+              .carousel-img {
+                display: block;
+              }
+              .carousel-container {
+                height: 500px;
+              }
+            }
+            @media (max-width: 749px) {
+              .carousel-layout {
+                flex-direction: column;
+              }
+              .carousel-text {
+                width: 100%;
+                height: auto;
+              }
+              .carousel-img {
+                display: none;
+              }
+              .carousel-container {
+                height: auto;
+              }
+            }
+          `}</style>
+
+          <div className='carousel-layout flex'>
+            <AnimatePresence mode='wait'>
+              <motion.img
+                key={currentNews.id}
+                src={currentNews.image}
+                alt={currentNews.title}
+                className='carousel-img object-cover flex-shrink-0'
+                variants={fadeInOut}
+                initial='initial'
+                animate='animate'
+                exit='exit'
+                loading='lazy'
+                width={800}
+                height={500}
+                srcSet={`${currentNews.image} 480w, ${currentNews.image} 800w, ${currentNews.image} 1200w`}
+                sizes='(max-width: 768px) 100vw, 50vw'
+              />
+            </AnimatePresence>
+
+            <AnimatePresence mode='wait'>
+              <motion.div
+                key={currentNews.id + '-text'}
+                className='carousel-text p-6 flex flex-col justify-between'
+                variants={fadeInOut}
+                initial='initial'
+                animate='animate'
+                exit='exit'
+              >
+                <div>
+                  <h2 className='text-2xl font-heading font-bold mb-2'>
+                    {currentNews.title}
+                  </h2>
+                  <p className='text-secondary mb-4'>
+                    {currentNews.description}
+                  </p>
+                </div>
+                <button
+                  className='text-primary font-semibold hover:underline self-start'
+                  onClick={() => navigate('/news')}
+                >
+                  Read More →
+                </button>
+              </motion.div>
+            </AnimatePresence>
           </div>
+
+          {/* Navigation Buttons */}
+          <button
+            onClick={prevSlide}
+            aria-label='Previous Slide'
+            className='absolute top-1/2 left-2 -translate-y-1/2 bg-primary bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-90 transition'
+          >
+            ‹
+          </button>
+          <button
+            onClick={nextSlide}
+            aria-label='Next Slide'
+            className='absolute top-1/2 right-2 -translate-y-1/2 bg-primary bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-90 transition'
+          >
+            ›
+          </button>
         </div>
       </motion.section>
 
@@ -129,7 +262,6 @@ const Landing = () => {
                   : post.body}
               </p>
 
-              {/* Author */}
               {post.author && (
                 <p className='text-xs text-gray-500 mb-2'>
                   By <span className='font-medium'>{post.author.username}</span>

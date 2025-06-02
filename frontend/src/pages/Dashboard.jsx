@@ -362,7 +362,10 @@ const Dashboard = () => {
                     : '';
 
                   return (
-                    <tr key={`${log._id || index}`}>
+                    <tr
+                      className='hover:bg-primary transition-colors'
+                      key={`${log._id || index}`}
+                    >
                       <td className='px-6 py-4 whitespace-nowrap text-text'>
                         {time}
                       </td>

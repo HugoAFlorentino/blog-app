@@ -164,6 +164,9 @@ const Navbar = () => {
           <Link to='/blogs' className='hover:text-primary transition'>
             Blogs
           </Link>
+          <Link to='/news' className='hover:text-primary transition'>
+            News
+          </Link>
           {currentUser && (
             <Link to='/create' className='hover:text-primary transition'>
               Create

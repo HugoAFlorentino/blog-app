@@ -11,3 +11,4 @@ export { default as Dashboard } from './Dashboard';
 export { default as Settings } from './Settings';
 export { default as ForgotPassword } from './ForgotPassword';
 export { default as ResetPassword } from './ResetPassword';
+export { default as News } from './News';

@@ -21,10 +21,16 @@ const Blogs = () => {
 
   const [deletePostId, setDeletePostId] = useState(null);
 
-  // Always fetch posts on mount regardless of user logged in or not
+  // State to track when we last fetched posts
+  const [lastFetchUserId, setLastFetchUserId] = useState(null);
+
+  // Fetch posts on mount and whenever currentUser changes (but only if different user)
   useEffect(() => {
-    dispatch(getAllPosts());
-  }, [dispatch]);
+    if (!currentUser || currentUser._id !== lastFetchUserId) {
+      dispatch(getAllPosts());
+      setLastFetchUserId(currentUser?._id || null);
+    }
+  }, [dispatch, currentUser, lastFetchUserId]);
 
   useEffect(() => {
     if (id && postRefs.current[id]) {

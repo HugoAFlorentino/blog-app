@@ -16,6 +16,7 @@ import {
   PrivacyPolicy,
   Terms,
   Settings,
+  News,
 } from './pages';
 import { refreshUser } from './redux/userSlice';
 import { ToastContainer } from 'react-toastify';
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
       { index: true, element: <Landing /> },
       { path: '/blogs', element: <Blogs /> },
       { path: '/blogs/:id', element: <Blogs /> },
+      { path: '/news', element: <News /> },
       { path: '/create', element: <CreatePost /> },
       { path: '/dashboard', element: <Dashboard /> },
       { path: '/settings', element: <Settings /> },
