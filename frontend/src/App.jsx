@@ -57,8 +57,11 @@ const App = () => {
   }, [dispatch]);
 
   if (!authChecked) {
-    // You can render a loading spinner here or nothing until we know auth status
-    return <div>Loading...</div>;
+    return (
+      <div className='flex justify-center items-center min-h-screen'>
+        <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'></div>
+      </div>
+    );
   }
 
   return (

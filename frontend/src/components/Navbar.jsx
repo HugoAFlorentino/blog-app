@@ -161,9 +161,9 @@ const Navbar = () => {
           <Link to='/' className='hover:text-primary transition'>
             Home
           </Link>
-          <Link to='/blogs' className='hover:text-primary transition'>
+          <a href='/blogs' className='hover:text-primary transition'>
             Blogs
-          </Link>
+          </a>
           <Link to='/news' className='hover:text-primary transition'>
             News
           </Link>

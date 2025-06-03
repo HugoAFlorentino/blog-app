@@ -4,7 +4,7 @@ import { BREVO_API_KEY, BREVO_SENDER_EMAIL } from '../config/env.config.js';
 const sendEmail = async (to, subject, html) => {
   try {
     const data = {
-      sender: { email: BREVO_SENDER_EMAIL, name: 'Your App' },
+      sender: { email: BREVO_SENDER_EMAIL, name: 'Blogify Press' },
       to: [{ email: to }],
       subject,
       htmlContent: html,

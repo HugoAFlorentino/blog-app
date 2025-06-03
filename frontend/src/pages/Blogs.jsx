@@ -3,34 +3,55 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllPosts, deletePost, updatePost } from '../redux/blogSlice';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
+
+const postVariants = {
+  hidden: {
+    opacity: 0,
+    y: 40,
+    scale: 0.95,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 110,
+      damping: 15,
+      mass: 0.5,
+    },
+  },
+  hover: {
+    scale: 1.03,
+    y: -5,
+    boxShadow: '0px 10px 20px rgba(0,0,0,0.12)',
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 20,
+    },
+  },
+};
 
 const Blogs = () => {
   const dispatch = useDispatch();
   const { posts, loading, error } = useSelector((state) => state.blogs);
   const currentUser = useSelector((state) => state.user?.currentUser);
-
-  const [expandedPosts, setExpandedPosts] = useState({});
   const { id } = useParams();
 
+  const [expandedPosts, setExpandedPosts] = useState({});
   const postRefs = useRef({});
 
   const [showModal, setShowModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedBody, setEditedBody] = useState('');
-
   const [deletePostId, setDeletePostId] = useState(null);
 
-  // State to track when we last fetched posts
-  const [lastFetchUserId, setLastFetchUserId] = useState(null);
-
-  // Fetch posts on mount and whenever currentUser changes (but only if different user)
   useEffect(() => {
-    if (!currentUser || currentUser._id !== lastFetchUserId) {
-      dispatch(getAllPosts());
-      setLastFetchUserId(currentUser?._id || null);
-    }
-  }, [dispatch, currentUser, lastFetchUserId]);
+    dispatch(getAllPosts());
+  }, [dispatch]);
 
   useEffect(() => {
     if (id && postRefs.current[id]) {
@@ -65,7 +86,7 @@ const Blogs = () => {
       .then(() => {
         toast.success('Post deleted successfully!');
         setDeletePostId(null);
-        dispatch(getAllPosts()); // Refresh posts after delete
+        dispatch(getAllPosts());
       })
       .catch(() => {
         toast.error('Failed to delete post.');
@@ -100,7 +121,7 @@ const Blogs = () => {
             top: document.body.scrollHeight,
             behavior: 'smooth',
           });
-          dispatch(getAllPosts()); // Refresh posts after update
+          dispatch(getAllPosts());
         })
         .catch(() => {
           toast.error('Failed to update post.');
@@ -123,13 +144,15 @@ const Blogs = () => {
           </h2>
 
           {loading ? (
-            <p>Loading...</p>
+            <p className='flex justify-center items-center min-h-screen'>
+              Loading...
+            </p>
           ) : error ? (
             <p className='text-accent'>{error}</p>
           ) : (
             posts
               .filter((post) => !post.isDeleted)
-              .map((post) => {
+              .map((post, index) => {
                 const isExpanded = expandedPosts[post._id];
                 const isOwner =
                   currentUser &&
@@ -138,11 +161,17 @@ const Blogs = () => {
                 const isAdmin = currentUser && currentUser.role === 'admin';
 
                 return (
-                  <div
+                  <motion.div
                     key={post._id}
                     ref={(el) => (postRefs.current[post._id] = el)}
                     id={post._id}
-                    className='bg-white dark:bg-neutral p-6 rounded-lg shadow hover:shadow-md transition'
+                    className='bg-white dark:bg-neutral p-6 rounded-lg shadow cursor-pointer'
+                    variants={postVariants}
+                    initial='hidden'
+                    whileInView='visible'
+                    viewport={{ once: true, amount: 0.3 }}
+                    whileHover='hover'
+                    transition={{ delay: index * 0.1 }}
                   >
                     <h3 className='text-2xl font-heading font-semibold mb-2'>
                       {post.title}
@@ -170,24 +199,24 @@ const Blogs = () => {
                       {isExpanded ? 'Show Less ←' : 'Read More →'}
                     </button>
 
-                    {/* Show edit/delete only if logged in and authorized */}
                     {(isOwner || isAdmin) && (
                       <>
                         <button
                           onClick={() => handleEdit(post)}
-                          className='text-yellow-600 font-medium hover:underline mr-4'
+                          className='mr-4 px-3 py-1 rounded-md bg-primary text-text font-semibold shadow-sm hover:scale-95 transition duration-150'
                         >
                           Edit
                         </button>
+
                         <button
                           onClick={() => confirmDelete(post._id)}
-                          className='text-red-600 font-medium hover:underline'
+                          className='px-3 py-1 rounded-md bg-accent text-text font-semibold shadow-sm hover:scale-95 transition duration-150 '
                         >
                           Delete
                         </button>
                       </>
                     )}
-                  </div>
+                  </motion.div>
                 );
               })
           )}
@@ -195,7 +224,8 @@ const Blogs = () => {
 
         {/* Sidebar */}
         <aside className='space-y-6'>
-          <div className='bg-white dark:bg-neutral p-6 rounded-lg shadow'>
+          {/* Newsletter Subscription */}
+          <div className='bg-white dark:bg-neutral p-6 rounded-lg shadow-lg'>
             <h4 className='text-xl font-heading font-semibold mb-2'>
               Subscribe to our Newsletter
             </h4>
@@ -212,43 +242,109 @@ const Blogs = () => {
             </button>
           </div>
 
-          <div className='bg-white dark:bg-neutral p-6 rounded-lg shadow text-center'>
+          {/* Advertisement 1 - Square */}
+          <div className='bg-white dark:bg-neutral p-6 rounded-lg shadow-lg text-center'>
             <p className='text-secondary text-sm mb-2'>Advertisement</p>
-            <div className='bg-gray-200 dark:bg-gray-600 h-32 rounded'></div>
+            <h4 className='text-lg font-semibold mb-1'>
+              The Future of AI in Marketing
+            </h4>
+            <p className='text-sm text-secondary mb-2'>
+              Discover how companies are using artificial intelligence to
+              revolutionize customer engagement and targeting.
+            </p>
+            <p className='text-xs text-gray-500'>Sponsored by AdnovaTech</p>
+          </div>
+
+          {/* Advertisement 2 - Rectangle Banner */}
+          <div className='bg-white dark:bg-neutral p-4 rounded-lg shadow-lg text-center'>
+            <p className='text-secondary text-sm mb-2'>Sponsored</p>
+            <h4 className='text-base font-semibold mb-1'>
+              Master UI Design in 30 Days
+            </h4>
+            <p className='text-sm text-secondary mb-1'>
+              Learn UI/UX design from scratch with interactive challenges and
+              feedback.
+            </p>
+            <p className='text-xs text-gray-500'>From: PixelPlay Academy</p>
+          </div>
+
+          {/* Advertisement 3 - Tall Skyscraper */}
+          <div className='bg-white dark:bg-neutral p-4 rounded-lg shadow-lg text-center'>
+            <p className='text-secondary text-sm mb-2'>Partner Message</p>
+            <h4 className='text-lg font-semibold mb-1'>
+              Remote Jobs That Pay $100k+
+            </h4>
+            <p className='text-sm text-secondary mb-2'>
+              A weekly roundup of top-paying remote jobs in tech, design, and
+              marketing.
+            </p>
+            <p className='text-xs text-gray-500'>JobHive.io</p>
+          </div>
+
+          {/* Advertisement 4 - Medium Rectangle */}
+          <div className='bg-white dark:bg-neutral p-4 rounded-lg shadow-lg text-left'>
+            <p className='text-secondary text-sm mb-2'>Featured Ad</p>
+            <h4 className='text-lg font-semibold mb-1'>
+              How to Optimize Your Website for Performance in 2025
+            </h4>
+            <p className='text-sm text-secondary mb-2'>
+              Speed is critical for user experience and SEO. This post covers
+              best practices, tools, and tips to optimize your website
+              performance, including lazy loading, caching strategies, and
+              minimizing JavaScript payloads.
+            </p>
+            <p className='text-xs text-gray-500'>Author: Hugo</p>
+          </div>
+
+          {/* Advertisement 5 - Compact */}
+          <div className='bg-white dark:bg-neutral p-4 rounded-lg shadow-lg text-center'>
+            <p className='text-secondary text-sm mb-2'>Ad Space</p>
+            <h4 className='text-base font-semibold mb-1'>
+              Try Lume — Your AI Writing Assistant
+            </h4>
+            <p className='text-sm text-secondary mb-2'>
+              Instantly generate better emails, blog posts, and reports with
+              Lume AI.
+            </p>
+            <p className='text-xs text-gray-500'>Trusted by 1M+ writers</p>
           </div>
         </aside>
       </div>
 
-      {/* Edit Modal */}
+      {/* Edit Modal (unchanged) */}
       {showModal && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-neutral p-6 rounded-lg w-full max-w-md shadow-lg'>
             <h2 className='text-xl font-semibold mb-4'>Edit Post</h2>
 
-            <label className='block mb-2 text-sm font-medium'>Title</label>
+            <label className='block mb-2 text-sm font-medium text-primary'>
+              Title
+            </label>
             <input
               type='text'
-              className='w-full p-2 border rounded mb-4'
+              className='w-full p-2 border rounded mb-4 text-black'
               value={editedTitle}
               onChange={(e) => setEditedTitle(e.target.value)}
             />
 
-            <label className='block mb-2 text-sm font-medium'>Body</label>
+            <label className='block mb-2 text-sm font-medium text-primary'>
+              Body
+            </label>
             <textarea
-              className='w-full p-2 border rounded mb-4 h-32'
+              className='w-full p-2 border rounded mb-4 h-32 text-black'
               value={editedBody}
               onChange={(e) => setEditedBody(e.target.value)}
             />
 
             <div className='flex justify-end space-x-4'>
               <button
-                className='bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400'
+                className='bg-gray-300 text-text px-4 py-2 rounded hover:bg-gray-400'
                 onClick={handleModalClose}
               >
                 Cancel
               </button>
               <button
-                className='bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90'
+                className='bg-primary text-text px-4 py-2 rounded hover:bg-orange-400'
                 onClick={handleSave}
               >
                 Save
@@ -258,7 +354,7 @@ const Blogs = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal (unchanged) */}
       {deletePostId && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-neutral p-6 rounded-lg w-full max-w-sm shadow-lg text-center'>

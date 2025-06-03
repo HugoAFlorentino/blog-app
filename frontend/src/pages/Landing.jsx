@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllPosts } from '../redux/blogSlice.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import newsData from '../utils/newsData.js';
 
 const fadeUp = {
@@ -23,6 +23,7 @@ const fadeInOut = {
 const Landing = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation(); // NEW
 
   const { posts, loading, error } = useSelector((state) => state.blogs);
 
@@ -30,7 +31,6 @@ const Landing = () => {
     dispatch(getAllPosts());
   }, [dispatch]);
 
-  // Latest 3 posts, reversed for newest first
   const lastThreePosts = posts.slice(-3).reverse();
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -38,7 +38,6 @@ const Landing = () => {
 
   const intervalRef = useRef(null);
 
-  // Slide control functions
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev === 0 ? newsData.length - 1 : prev - 1));
   };
@@ -47,7 +46,6 @@ const Landing = () => {
     setCurrentIndex((prev) => (prev === newsData.length - 1 ? 0 : prev + 1));
   };
 
-  // Auto slide interval setup with pause/resume support
   useEffect(() => {
     if (!isPaused) {
       intervalRef.current = setInterval(() => {
@@ -60,14 +58,12 @@ const Landing = () => {
     return () => clearInterval(intervalRef.current);
   }, [isPaused]);
 
-  // Pause auto-slide when tab is inactive to save CPU
   useEffect(() => {
     const handleVisibilityChange = () => {
       setIsPaused(document.hidden);
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -76,14 +72,13 @@ const Landing = () => {
   const currentNews = newsData[currentIndex];
   const nextIndex = (currentIndex + 1) % newsData.length;
 
-  // Preload next slide image for smooth transitions
   useEffect(() => {
     const nextImage = new Image();
     nextImage.src = newsData[nextIndex].image;
   }, [currentIndex, nextIndex]);
 
   return (
-    <div className='px-4 md:px-12 max-w-7xl mx-auto'>
+    <div className='px-4 md:px-12 max-w-7xl mx-auto' key={location.pathname}>
       {/* Hero */}
       <motion.section
         className='bg-primary text-text rounded-2xl p-10 text-center mb-12 shadow-md'
@@ -99,7 +94,7 @@ const Landing = () => {
         </p>
         <motion.button
           className='bg-background text-text px-6 py-2 rounded-full font-semibold hover:bg-neutral transition'
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 0.95 }}
           onClick={() => navigate('/blogs')}
         >
           Explore Posts
@@ -124,8 +119,19 @@ const Landing = () => {
         <span className='whitespace-nowrap'>🎨 Dark Mode Best Practices</span>
       </motion.div>
 
-      {/* Featured Post Carousel */}
-      <h3 className='text-2xl font-heading font-semibold mb-6'>Latest News</h3>
+      {/* Carousel Header */}
+      <motion.div
+        initial='hidden'
+        animate='visible'
+        variants={fadeUp}
+        custom={0.25}
+      >
+        <h3 className='text-2xl font-heading font-semibold mb-6'>
+          Latest News
+        </h3>
+      </motion.div>
+
+      {/* Carousel */}
       <motion.section
         className='mb-16'
         initial='hidden'
@@ -141,34 +147,16 @@ const Landing = () => {
         >
           <style>{`
             @media (min-width: 750px) {
-              .carousel-layout {
-                flex-direction: row;
-              }
-              .carousel-img, .carousel-text {
-                width: 50%;
-                height: 500px;
-              }
-              .carousel-img {
-                display: block;
-              }
-              .carousel-container {
-                height: 500px;
-              }
+              .carousel-layout { flex-direction: row; }
+              .carousel-img, .carousel-text { width: 50%; height: 500px; }
+              .carousel-img { display: block; }
+              .carousel-container { height: 500px; }
             }
             @media (max-width: 749px) {
-              .carousel-layout {
-                flex-direction: column;
-              }
-              .carousel-text {
-                width: 100%;
-                height: auto;
-              }
-              .carousel-img {
-                display: none;
-              }
-              .carousel-container {
-                height: auto;
-              }
+              .carousel-layout { flex-direction: column; }
+              .carousel-text { width: 100%; height: auto; }
+              .carousel-img { display: none; }
+              .carousel-container { height: auto; }
             }
           `}</style>
 
@@ -218,7 +206,6 @@ const Landing = () => {
             </AnimatePresence>
           </div>
 
-          {/* Navigation Buttons */}
           <button
             onClick={prevSlide}
             aria-label='Previous Slide'
@@ -238,9 +225,16 @@ const Landing = () => {
 
       {/* Latest Posts */}
       <section>
-        <h3 className='text-2xl font-heading font-semibold mb-6'>
-          Latest Posts
-        </h3>
+        <motion.div
+          initial='hidden'
+          animate='visible'
+          variants={fadeUp}
+          custom={0.35}
+        >
+          <h3 className='text-2xl font-heading font-semibold mb-6'>
+            Latest Posts
+          </h3>
+        </motion.div>
 
         {loading && <p>Loading posts...</p>}
         {error && <p className='text-red-500'>{error}</p>}

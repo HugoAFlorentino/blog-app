@@ -1,5 +1,29 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import newsData from '../utils/newsData';
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 120,
+      damping: 15,
+    },
+  },
+};
 
 const News = () => {
   const [expanded, setExpanded] = useState({});
@@ -23,14 +47,21 @@ const News = () => {
         </p>
       </header>
 
-      <div className='grid gap-8 sm:grid-cols-2 lg:grid-cols-3'>
+      <motion.div
+        className='grid gap-8 sm:grid-cols-2 lg:grid-cols-3'
+        variants={containerVariants}
+        initial='hidden'
+        whileInView='visible'
+        viewport={{ once: true, amount: 0.2 }}
+      >
         {newsData.map(({ id, title, description, date, image }) => {
           const isExpanded = expanded[id];
 
           return (
-            <article
+            <motion.article
               key={id}
               className='bg-white dark:bg-neutral border border-neutral rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden flex flex-col'
+              variants={cardVariants}
             >
               {image && (
                 <img
@@ -67,10 +98,10 @@ const News = () => {
                   {new Date(date).toLocaleDateString()}
                 </span>
               </div>
-            </article>
+            </motion.article>
           );
         })}
-      </div>
+      </motion.div>
     </section>
   );
 };
