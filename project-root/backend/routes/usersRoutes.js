@@ -21,16 +21,24 @@ import {
   validateRestoreUser,
 } from '../validators/userValidators.js';
 import { validateRequest } from '../middleware/validateRequest.js';
+import rateLimiter from '../middleware/rateLimit.js';
 
 const userRouter = Router();
 
 userRouter.post(
   '/users/signup',
+  rateLimiter,
   validateCreateUser,
   validateRequest,
   createUser
 );
-userRouter.post('/users/signin', validateLoginUser, validateRequest, loginUser);
+userRouter.post(
+  '/users/signin',
+  rateLimiter,
+  validateLoginUser,
+  validateRequest,
+  loginUser
+);
 userRouter.post('/users/logout', authenticateUser, logoutUser);
 userRouter.get('/users/refresh', authenticateUser, refreshToken);
 userRouter.patch(

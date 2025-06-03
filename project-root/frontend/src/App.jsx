@@ -1,26 +1,25 @@
-import { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { Layout } from './components';
-import {
-  Blogs,
-  CreatePost,
-  Dashboard,
-  Landing,
-  SignIn,
-  SignUp,
-  ForgotPassword,
-  ResetPassword,
-  About,
-  Faq,
-  PrivacyPolicy,
-  Terms,
-  Settings,
-  News,
-} from './pages';
-import { refreshUser } from './redux/userSlice';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+// Lazy load pages
+const Layout = lazy(() => import('./components/Layout'));
+const Blogs = lazy(() => import('./pages/Blogs'));
+const CreatePost = lazy(() => import('./pages/CreatePost'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Landing = lazy(() => import('./pages/Landing'));
+const SignIn = lazy(() => import('./pages/SignIn'));
+const SignUp = lazy(() => import('./pages/SignUp'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const About = lazy(() => import('./pages/About'));
+const Faq = lazy(() => import('./pages/Faq'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Settings = lazy(() => import('./pages/Settings'));
+const News = lazy(() => import('./pages/News'));
 
 const router = createBrowserRouter([
   {
@@ -66,7 +65,16 @@ const App = () => {
 
   return (
     <>
-      <RouterProvider router={router} />
+      <Suspense
+        fallback={
+          <div className='flex justify-center items-center min-h-screen'>
+            <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'></div>
+          </div>
+        }
+      >
+        <RouterProvider router={router} />
+      </Suspense>
+
       <ToastContainer
         position='top-center'
         autoClose={3000}
