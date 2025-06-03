@@ -16,7 +16,11 @@ import subscriptionRouter from './routes/subscriptionRoutes.js';
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:4000'];
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4000',
+  'https://blogify-press.netlify.app',
+];
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());

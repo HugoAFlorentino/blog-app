@@ -242,13 +242,13 @@ const Navbar = () => {
           <Link to='/' onClick={closeMenu} className='block hover:text-primary'>
             Home
           </Link>
-          <Link
-            to='/blogs'
+          <a
+            href='/blogs'
             onClick={closeMenu}
             className='block hover:text-primary'
           >
             Blogs
-          </Link>
+          </a>
           <Link
             to='/create'
             onClick={closeMenu}
