@@ -2,13 +2,43 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import api from '../utils/axios';
 
 // CREATE POST
+// export const createPost = createAsyncThunk(
+//   'blog/createPost',
+//   async (credentials, thunkAPI) => {
+//     try {
+//       const response = await api.post('/blog', credentials, {
+//         withCredentials: true,
+//       });
+//       return response.data.data;
+//     } catch (err) {
+//       const message =
+//         err.response?.data?.error || err.message || 'Something went wrong';
+//       return thunkAPI.rejectWithValue(message);
+//     }
+//   }
+// );
+
+// DEMO createPost logic
 export const createPost = createAsyncThunk(
-  'blog/createPost',
+  'blog/createPostDemo',
   async (credentials, thunkAPI) => {
     try {
-      const response = await api.post('/blog', credentials, {
+      const state = thunkAPI.getState();
+      const user = state.user.currentUser;
+
+      const isDemoUser = user?.isDemoUser;
+
+      const demoPostTemplate = {
+        title: 'Demo Title by User',
+        body: 'This is a predefined demo post content to simulate a user-generated blog post.',
+      };
+
+      const finalPayload = isDemoUser ? demoPostTemplate : credentials;
+
+      const response = await api.post('/blog', finalPayload, {
         withCredentials: true,
       });
+
       return response.data.data;
     } catch (err) {
       const message =

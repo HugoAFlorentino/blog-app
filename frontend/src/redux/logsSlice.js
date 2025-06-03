@@ -6,7 +6,7 @@ export const fetchLogs = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const response = await api.get('/logs');
-      return response.data; // return logs data here
+      return response.data;
     } catch (err) {
       const message =
         err.response?.data?.error || err.message || 'Something went wrong';

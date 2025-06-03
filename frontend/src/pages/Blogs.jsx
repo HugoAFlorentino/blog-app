@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllPosts, deletePost, updatePost } from '../redux/blogSlice';
+import { sendThankYouEmail } from '../redux/subscriptionSlice';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
@@ -37,6 +38,7 @@ const postVariants = {
 const Blogs = () => {
   const dispatch = useDispatch();
   const { posts, loading, error } = useSelector((state) => state.blogs);
+  const { status: emailStatus } = useSelector((state) => state.subscription);
   const currentUser = useSelector((state) => state.user?.currentUser);
   const { id } = useParams();
 
@@ -48,6 +50,7 @@ const Blogs = () => {
   const [editedTitle, setEditedTitle] = useState('');
   const [editedBody, setEditedBody] = useState('');
   const [deletePostId, setDeletePostId] = useState(null);
+  const [subscriberEmail, setSubscriberEmail] = useState('');
 
   useEffect(() => {
     dispatch(getAllPosts());
@@ -134,10 +137,26 @@ const Blogs = () => {
     setEditingPost(null);
   };
 
+  const handleSubscription = () => {
+    if (!subscriberEmail.trim()) {
+      toast.error('Please enter a valid email.');
+      return;
+    }
+
+    dispatch(sendThankYouEmail(subscriberEmail))
+      .unwrap()
+      .then(() => {
+        toast.success('Thanks for subscribing!');
+        setSubscriberEmail('');
+      })
+      .catch((err) => {
+        toast.error(`Subscription failed: ${err?.message || 'Unknown error'}`);
+      });
+  };
+
   return (
     <div className='px-4 md:px-12 max-w-7xl mx-auto py-12'>
       <div className='grid grid-cols-1 lg:grid-cols-4 gap-10'>
-        {/* Main Content */}
         <div className='lg:col-span-3 space-y-8'>
           <h2 className='text-3xl font-heading font-bold mb-6'>
             All Blog Posts
@@ -210,7 +229,7 @@ const Blogs = () => {
 
                         <button
                           onClick={() => confirmDelete(post._id)}
-                          className='px-3 py-1 rounded-md bg-accent text-text font-semibold shadow-sm hover:scale-95 transition duration-150 '
+                          className='px-3 py-1 rounded-md bg-accent text-text font-semibold shadow-sm hover:scale-95 transition duration-150'
                         >
                           Delete
                         </button>
@@ -224,7 +243,6 @@ const Blogs = () => {
 
         {/* Sidebar */}
         <aside className='space-y-6'>
-          {/* Newsletter Subscription */}
           <div className='bg-white dark:bg-neutral p-6 rounded-lg shadow-lg'>
             <h4 className='text-xl font-heading font-semibold mb-2'>
               Subscribe to our Newsletter
@@ -234,15 +252,25 @@ const Blogs = () => {
             </p>
             <input
               type='email'
+              value={subscriberEmail}
+              onChange={(e) => setSubscriberEmail(e.target.value)}
               placeholder='you@example.com'
-              className='bg-white dark:bg-neutral w-full px-4 py-2 rounded mb-3 border border-secondary focus:outline-none'
+              className='bg-white dark:bg-neutral w-full px-4 py-2 rounded mb-3 border border-secondary focus:outline-none text-black'
             />
-            <button className='w-full bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition'>
-              Subscribe
+            <button
+              onClick={handleSubscription}
+              disabled={emailStatus === 'loading'}
+              className={`w-full bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm transition duration-300 ${
+                emailStatus === 'loading'
+                  ? 'opacity-60 cursor-not-allowed'
+                  : 'hover:scale-95'
+              }`}
+            >
+              {emailStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
             </button>
           </div>
 
-          {/* Advertisement 1 - Square */}
+          {/* Ads */}
           <div className='bg-white dark:bg-neutral p-6 rounded-lg shadow-lg text-center'>
             <p className='text-secondary text-sm mb-2'>Advertisement</p>
             <h4 className='text-lg font-semibold mb-1'>
@@ -255,7 +283,6 @@ const Blogs = () => {
             <p className='text-xs text-gray-500'>Sponsored by AdnovaTech</p>
           </div>
 
-          {/* Advertisement 2 - Rectangle Banner */}
           <div className='bg-white dark:bg-neutral p-4 rounded-lg shadow-lg text-center'>
             <p className='text-secondary text-sm mb-2'>Sponsored</p>
             <h4 className='text-base font-semibold mb-1'>
@@ -268,7 +295,6 @@ const Blogs = () => {
             <p className='text-xs text-gray-500'>From: PixelPlay Academy</p>
           </div>
 
-          {/* Advertisement 3 - Tall Skyscraper */}
           <div className='bg-white dark:bg-neutral p-4 rounded-lg shadow-lg text-center'>
             <p className='text-secondary text-sm mb-2'>Partner Message</p>
             <h4 className='text-lg font-semibold mb-1'>
@@ -281,7 +307,6 @@ const Blogs = () => {
             <p className='text-xs text-gray-500'>JobHive.io</p>
           </div>
 
-          {/* Advertisement 4 - Medium Rectangle */}
           <div className='bg-white dark:bg-neutral p-4 rounded-lg shadow-lg text-left'>
             <p className='text-secondary text-sm mb-2'>Featured Ad</p>
             <h4 className='text-lg font-semibold mb-1'>
@@ -296,7 +321,6 @@ const Blogs = () => {
             <p className='text-xs text-gray-500'>Author: Hugo</p>
           </div>
 
-          {/* Advertisement 5 - Compact */}
           <div className='bg-white dark:bg-neutral p-4 rounded-lg shadow-lg text-center'>
             <p className='text-secondary text-sm mb-2'>Ad Space</p>
             <h4 className='text-base font-semibold mb-1'>
@@ -311,7 +335,7 @@ const Blogs = () => {
         </aside>
       </div>
 
-      {/* Edit Modal (unchanged) */}
+      {/* Edit Modal */}
       {showModal && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-neutral p-6 rounded-lg w-full max-w-md shadow-lg'>
@@ -354,7 +378,7 @@ const Blogs = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal (unchanged) */}
+      {/* Delete Confirmation Modal */}
       {deletePostId && (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
           <div className='bg-white dark:bg-neutral p-6 rounded-lg w-full max-w-sm shadow-lg text-center'>

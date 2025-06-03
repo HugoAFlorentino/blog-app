@@ -12,6 +12,7 @@ import authRouter from './routes/authRoutes.js';
 import logRouter from './routes/logRoutes.js';
 import mongoSanitize from 'express-mongo-sanitize';
 import sanitizeBody from './middleware/sanitizeBody.js';
+import subscriptionRouter from './routes/subscriptionRoutes.js';
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use('/api/v1', userRouter);
 app.use('/api/v1', blogRouter);
 app.use('/api/v1', authRouter);
 app.use('/api/v1', logRouter);
+app.use('/api/v1', subscriptionRouter);
 
 app.listen(PORT, () => {
   console.log(`server is running at port: ${PORT}`);

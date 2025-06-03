@@ -48,7 +48,7 @@ const Dashboard = () => {
   }, [posts]);
 
   const getUserStatus = (user) => {
-    if (!user) return 'unknown';
+    if (!user) return 'author';
     if (user.status) return user.status.toLowerCase();
     if (user.isDeleted === true) return 'deleted';
     if (user.deleted === true) return 'deleted';
@@ -140,7 +140,8 @@ const Dashboard = () => {
       </header>
 
       {/* Users Table */}
-      <div className='overflow-x-auto bg-neutral rounded-xl shadow-md border border-primary mb-10'>
+      <p className='mb-4'>User List only visible for Admin</p>
+      <div className='overflow-x-auto bg-neutral rounded-xl shadow-md border border-primary mb-4'>
         <table className='min-w-full divide-y divide-primary'>
           <thead className='bg-primary/10'>
             <tr>
@@ -170,7 +171,7 @@ const Dashboard = () => {
               </tr>
             )}
             {currentUsers.map((user, index) => {
-              const userId = user._id || user.id || `unknown-id-${index}`;
+              const userId = user._id || user.id || `author-${index}`;
               const status = getUserStatus(user);
               const isDeleted = status === 'deleted';
 
@@ -182,10 +183,10 @@ const Dashboard = () => {
                   }`}
                 >
                   <td className='px-6 py-4 whitespace-nowrap'>
-                    {user.username || 'N/A'}
+                    {user.username || 'author'}
                   </td>
                   <td className='px-6 py-4 whitespace-nowrap'>
-                    {user.email || 'N/A'}
+                    {user.email || 'author'}
                   </td>
                   <td className='px-6 py-4 text-center font-semibold'>
                     {postCounts[userId] || 0}
@@ -220,6 +221,27 @@ const Dashboard = () => {
         </table>
       </div>
 
+      {/* Users Pagination Buttons */}
+      <div className='flex justify-between items-center max-w-sm mx-auto mb-10'>
+        <button
+          onClick={goToPrevUserPage}
+          disabled={userPage === 1}
+          className='btn-secondary'
+        >
+          Previous
+        </button>
+        <span className='text-secondary font-semibold'>
+          Page {userPage} of {totalUserPages}
+        </span>
+        <button
+          onClick={goToNextUserPage}
+          disabled={userPage === totalUserPages}
+          className='btn-secondary'
+        >
+          Next
+        </button>
+      </div>
+
       {/* Users stats */}
       <section className='mt-12 flex flex-wrap gap-8 justify-center'>
         <div className='bg-white dark:bg-neutral rounded-xl shadow-lg p-8 w-64 text-center'>
@@ -243,6 +265,7 @@ const Dashboard = () => {
           Blog Posts
         </h2>
 
+        <p className='mb-4'>Author name only visible for Admin</p>
         <div className='overflow-x-auto bg-neutral rounded-xl shadow-md border border-primary mb-6'>
           <table className='min-w-full divide-y divide-primary'>
             <thead className='bg-primary/10'>
@@ -267,11 +290,11 @@ const Dashboard = () => {
                 </tr>
               )}
               {currentPosts.map((post, idx) => {
-                const postId = post._id || post.id || `unknown-post-${idx}`;
+                const postId = post._id || post.id || `author-post-${idx}`;
                 const authorId = post.author?._id || post.author;
                 const authorName =
                   users.find((u) => (u._id || u.id) === authorId)?.username ||
-                  'Unknown';
+                  'author';
 
                 return (
                   <tr
@@ -354,9 +377,9 @@ const Dashboard = () => {
                   // Defensive field access for logs
                   const time = log.createdAt
                     ? new Date(log.createdAt).toLocaleString()
-                    : 'N/A';
-                  const action = log.action || 'N/A';
-                  const userId = log.userId || 'N/A';
+                    : 'author';
+                  const action = log.action || 'author';
+                  const userId = log.userId || 'author';
                   const details = log.details
                     ? JSON.stringify(log.details)
                     : '';

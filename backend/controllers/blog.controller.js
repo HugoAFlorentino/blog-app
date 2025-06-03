@@ -20,9 +20,12 @@ export const createPost = async (req, res) => {
     const savedPost = await newPost.save();
     const populatedPost = await savedPost.populate('author', '_id username');
 
-    await logActivity(req.user._id, 'create_post', req, {
-      postId: savedPost._id,
-      title,
+    await logActivity({
+      userId: req.user._id,
+      action: 'create_post',
+      blogId: savedPost._id,
+      req,
+      details: { title },
     });
 
     res.status(201).json({ success: true, data: populatedPost });
@@ -74,9 +77,12 @@ export const patchPost = async (req, res) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    await logActivity(req.user._id, 'update_post', req, {
-      postId,
-      updatedFields: Object.keys(updateData),
+    await logActivity({
+      userId: req.user._id,
+      action: 'update_post',
+      blogId: postId,
+      req,
+      details: { updatedFields: Object.keys(updateData) },
     });
 
     res.status(200).json({ success: true, data: updatedPost });
@@ -154,9 +160,12 @@ export const deletePost = async (req, res) => {
     post.deletedAt = new Date();
     await post.save();
 
-    await logActivity(req.user._id, 'delete_post', req, {
-      postId: post._id,
-      title: post.title,
+    await logActivity({
+      userId: req.user._id,
+      action: 'delete_post',
+      blogId: post._id,
+      req,
+      details: { title: post.title },
     });
 
     res
@@ -193,9 +202,12 @@ export const restorePost = async (req, res) => {
     post.deletedAt = null;
     await post.save();
 
-    await logActivity(req.user._id, 'restore_post', req, {
-      postId: post._id,
-      title: post.title,
+    await logActivity({
+      userId: req.user._id,
+      action: 'restore_post',
+      blogId: post._id,
+      req,
+      details: { title: post.title },
     });
 
     res
@@ -227,9 +239,14 @@ export const getPostsByUser = async (req, res) => {
 
     const posts = await Blog.find(query).populate('author', 'username');
 
-    await logActivity(req.user._id, 'view_user_posts', req, {
-      viewedUserId: userId,
-      filter: title || null,
+    await logActivity({
+      userId: req.user._id,
+      action: 'view_user_posts',
+      req,
+      details: {
+        viewedUserId: userId,
+        filter: title || null,
+      },
     });
 
     res.status(200).json({ success: true, data: posts });
