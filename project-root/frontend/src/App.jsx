@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { refreshUser } from './redux/userSlice';
 
 // Lazy load pages
 const Layout = lazy(() => import('./components/Layout'));
