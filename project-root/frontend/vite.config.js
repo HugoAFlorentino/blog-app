@@ -1,15 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      react: path.resolve('./node_modules/react'),
-      'react-dom': path.resolve('./node_modules/react-dom'),
-    },
-  },
+  // temporarily comment out the custom chunk splitting
+  /*
   build: {
     rollupOptions: {
       output: {
@@ -30,4 +25,5 @@ export default defineConfig({
       },
     },
   },
+  */
 });
