@@ -1,49 +1,130 @@
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, lazy } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { refreshUser } from './redux/userSlice';
 
-// Lazy load pages
-const Layout = lazy(() => import('./components/Layout'));
-const Blogs = lazy(() => import('./pages/Blogs'));
-const CreatePost = lazy(() => import('./pages/CreatePost'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Landing = lazy(() => import('./pages/Landing'));
-const SignIn = lazy(() => import('./pages/SignIn'));
-const SignUp = lazy(() => import('./pages/SignUp'));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-const About = lazy(() => import('./pages/About'));
-const Faq = lazy(() => import('./pages/Faq'));
-const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
-const Terms = lazy(() => import('./pages/Terms'));
-const Settings = lazy(() => import('./pages/Settings'));
-const News = lazy(() => import('./pages/News'));
-
+// Lazy-loaded components using react-router-dom's lazy()
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Layout />,
+    lazy: async () => {
+      const { default: Layout } = await import('./components/Layout');
+      return { Component: Layout };
+    },
     children: [
-      { index: true, element: <Landing /> },
-      { path: '/blogs', element: <Blogs /> },
-      { path: '/blogs/:id', element: <Blogs /> },
-      { path: '/news', element: <News /> },
-      { path: '/create', element: <CreatePost /> },
-      { path: '/dashboard', element: <Dashboard /> },
-      { path: '/settings', element: <Settings /> },
-      { path: '/about', element: <About /> },
-      { path: '/faq', element: <Faq /> },
-      { path: '/privacy', element: <PrivacyPolicy /> },
-      { path: '/terms', element: <Terms /> },
+      {
+        index: true,
+        lazy: async () => {
+          const { default: Landing } = await import('./pages/Landing');
+          return { Component: Landing };
+        },
+      },
+      {
+        path: 'blogs',
+        lazy: async () => {
+          const { default: Blogs } = await import('./pages/Blogs');
+          return { Component: Blogs };
+        },
+      },
+      {
+        path: 'blogs/:id',
+        lazy: async () => {
+          const { default: Blogs } = await import('./pages/Blogs');
+          return { Component: Blogs };
+        },
+      },
+      {
+        path: 'news',
+        lazy: async () => {
+          const { default: News } = await import('./pages/News');
+          return { Component: News };
+        },
+      },
+      {
+        path: 'create',
+        lazy: async () => {
+          const { default: CreatePost } = await import('./pages/CreatePost');
+          return { Component: CreatePost };
+        },
+      },
+      {
+        path: 'dashboard',
+        lazy: async () => {
+          const { default: Dashboard } = await import('./pages/Dashboard');
+          return { Component: Dashboard };
+        },
+      },
+      {
+        path: 'settings',
+        lazy: async () => {
+          const { default: Settings } = await import('./pages/Settings');
+          return { Component: Settings };
+        },
+      },
+      {
+        path: 'about',
+        lazy: async () => {
+          const { default: About } = await import('./pages/About');
+          return { Component: About };
+        },
+      },
+      {
+        path: 'faq',
+        lazy: async () => {
+          const { default: Faq } = await import('./pages/Faq');
+          return { Component: Faq };
+        },
+      },
+      {
+        path: 'privacy',
+        lazy: async () => {
+          const { default: PrivacyPolicy } = await import(
+            './pages/PrivacyPolicy'
+          );
+          return { Component: PrivacyPolicy };
+        },
+      },
+      {
+        path: 'terms',
+        lazy: async () => {
+          const { default: Terms } = await import('./pages/Terms');
+          return { Component: Terms };
+        },
+      },
     ],
   },
-  { path: '/signin', element: <SignIn /> },
-  { path: '/signup', element: <SignUp /> },
-  { path: '/forgot-password', element: <ForgotPassword /> },
-  { path: '/reset-password/:id/:token', element: <ResetPassword /> },
+  {
+    path: '/signin',
+    lazy: async () => {
+      const { default: SignIn } = await import('./pages/SignIn');
+      return { Component: SignIn };
+    },
+  },
+  {
+    path: '/signup',
+    lazy: async () => {
+      const { default: SignUp } = await import('./pages/SignUp');
+      return { Component: SignUp };
+    },
+  },
+  {
+    path: '/forgot-password',
+    lazy: async () => {
+      const { default: ForgotPassword } = await import(
+        './pages/ForgotPassword'
+      );
+      return { Component: ForgotPassword };
+    },
+  },
+  {
+    path: '/reset-password/:id/:token',
+    lazy: async () => {
+      const { default: ResetPassword } = await import('./pages/ResetPassword');
+      return { Component: ResetPassword };
+    },
+  },
 ]);
 
 const App = () => {
@@ -52,7 +133,7 @@ const App = () => {
 
   useEffect(() => {
     dispatch(refreshUser()).catch(() => {
-      // swallow error quietly
+      // silently fail
     });
   }, [dispatch]);
 
@@ -66,15 +147,7 @@ const App = () => {
 
   return (
     <>
-      <Suspense
-        fallback={
-          <div className='flex justify-center items-center min-h-screen'>
-            <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'></div>
-          </div>
-        }
-      >
-        <RouterProvider router={router} />
-      </Suspense>
+      <RouterProvider router={router} />
 
       <ToastContainer
         position='top-center'
