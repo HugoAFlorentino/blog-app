@@ -161,9 +161,16 @@ const Navbar = () => {
           <Link to='/' className='hover:text-primary transition'>
             Home
           </Link>
-          <a href='/blogs' className='hover:text-primary transition'>
+          <Link
+            to='/blogs'
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = '/blogs';
+            }}
+            className='hover:text-primary transition'
+          >
             Blogs
-          </a>
+          </Link>
           <Link to='/news' className='hover:text-primary transition'>
             News
           </Link>
@@ -242,13 +249,16 @@ const Navbar = () => {
           <Link to='/' onClick={closeMenu} className='block hover:text-primary'>
             Home
           </Link>
-          <a
-            href='/blogs'
-            onClick={closeMenu}
-            className='block hover:text-primary'
+          <Link
+            to='/blogs'
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = '/blogs';
+            }}
+            className='hover:text-primary transition'
           >
             Blogs
-          </a>
+          </Link>
           <Link
             to='/create'
             onClick={closeMenu}
