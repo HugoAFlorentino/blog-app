@@ -1,154 +1,180 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createBrowserRouter, RouterProvider, lazy } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { refreshUser } from './redux/userSlice';
 
-// Lazy-loaded components using react-router-dom's lazy()
+// React.lazy for code-splitting
+const Layout = React.lazy(() => import('./components/Layout'));
+const Landing = React.lazy(() => import('./pages/Landing'));
+const Blogs = React.lazy(() => import('./pages/Blogs'));
+const News = React.lazy(() => import('./pages/News'));
+const CreatePost = React.lazy(() => import('./pages/CreatePost'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const About = React.lazy(() => import('./pages/About'));
+const Faq = React.lazy(() => import('./pages/Faq'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
+const Terms = React.lazy(() => import('./pages/Terms'));
+const SignIn = React.lazy(() => import('./pages/SignIn'));
+const SignUp = React.lazy(() => import('./pages/SignUp'));
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
+
 const router = createBrowserRouter([
   {
     path: '/',
-    lazy: async () => {
-      const { default: Layout } = await import('./components/Layout');
-      return { Component: Layout };
-    },
+    element: (
+      <Suspense fallback={<Loading />}>
+        <Layout />
+      </Suspense>
+    ),
     children: [
       {
         index: true,
-        lazy: async () => {
-          const { default: Landing } = await import('./pages/Landing');
-          return { Component: Landing };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Landing />
+          </Suspense>
+        ),
       },
       {
         path: 'blogs',
-        lazy: async () => {
-          const { default: Blogs } = await import('./pages/Blogs');
-          return { Component: Blogs };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Blogs />
+          </Suspense>
+        ),
       },
       {
         path: 'blogs/:id',
-        lazy: async () => {
-          const { default: Blogs } = await import('./pages/Blogs');
-          return { Component: Blogs };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Blogs />
+          </Suspense>
+        ),
       },
       {
         path: 'news',
-        lazy: async () => {
-          const { default: News } = await import('./pages/News');
-          return { Component: News };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <News />
+          </Suspense>
+        ),
       },
       {
         path: 'create',
-        lazy: async () => {
-          const { default: CreatePost } = await import('./pages/CreatePost');
-          return { Component: CreatePost };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <CreatePost />
+          </Suspense>
+        ),
       },
       {
         path: 'dashboard',
-        lazy: async () => {
-          const { default: Dashboard } = await import('./pages/Dashboard');
-          return { Component: Dashboard };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Dashboard />
+          </Suspense>
+        ),
       },
       {
         path: 'settings',
-        lazy: async () => {
-          const { default: Settings } = await import('./pages/Settings');
-          return { Component: Settings };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Settings />
+          </Suspense>
+        ),
       },
       {
         path: 'about',
-        lazy: async () => {
-          const { default: About } = await import('./pages/About');
-          return { Component: About };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <About />
+          </Suspense>
+        ),
       },
       {
         path: 'faq',
-        lazy: async () => {
-          const { default: Faq } = await import('./pages/Faq');
-          return { Component: Faq };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Faq />
+          </Suspense>
+        ),
       },
       {
         path: 'privacy',
-        lazy: async () => {
-          const { default: PrivacyPolicy } = await import(
-            './pages/PrivacyPolicy'
-          );
-          return { Component: PrivacyPolicy };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <PrivacyPolicy />
+          </Suspense>
+        ),
       },
       {
         path: 'terms',
-        lazy: async () => {
-          const { default: Terms } = await import('./pages/Terms');
-          return { Component: Terms };
-        },
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Terms />
+          </Suspense>
+        ),
       },
     ],
   },
   {
     path: '/signin',
-    lazy: async () => {
-      const { default: SignIn } = await import('./pages/SignIn');
-      return { Component: SignIn };
-    },
+    element: (
+      <Suspense fallback={<Loading />}>
+        <SignIn />
+      </Suspense>
+    ),
   },
   {
     path: '/signup',
-    lazy: async () => {
-      const { default: SignUp } = await import('./pages/SignUp');
-      return { Component: SignUp };
-    },
+    element: (
+      <Suspense fallback={<Loading />}>
+        <SignUp />
+      </Suspense>
+    ),
   },
   {
     path: '/forgot-password',
-    lazy: async () => {
-      const { default: ForgotPassword } = await import(
-        './pages/ForgotPassword'
-      );
-      return { Component: ForgotPassword };
-    },
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ForgotPassword />
+      </Suspense>
+    ),
   },
   {
     path: '/reset-password/:id/:token',
-    lazy: async () => {
-      const { default: ResetPassword } = await import('./pages/ResetPassword');
-      return { Component: ResetPassword };
-    },
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ResetPassword />
+      </Suspense>
+    ),
   },
 ]);
+
+// Reusable loading spinner
+const Loading = () => (
+  <div className='flex justify-center items-center min-h-screen'>
+    <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'></div>
+  </div>
+);
 
 const App = () => {
   const dispatch = useDispatch();
   const authChecked = useSelector((state) => state.user.authChecked);
 
   useEffect(() => {
-    dispatch(refreshUser()).catch(() => {
-      // silently fail
-    });
+    dispatch(refreshUser()).catch(() => {});
   }, [dispatch]);
 
-  if (!authChecked) {
-    return (
-      <div className='flex justify-center items-center min-h-screen'>
-        <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'></div>
-      </div>
-    );
-  }
+  if (!authChecked) return <Loading />;
 
   return (
     <>
       <RouterProvider router={router} />
-
       <ToastContainer
         position='top-center'
         autoClose={3000}
