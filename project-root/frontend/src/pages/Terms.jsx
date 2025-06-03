@@ -1,3 +1,5 @@
+import React from 'react';
+
 const Terms = () => {
   return (
     <div className='max-w-4xl mx-auto px-6 py-12 bg-white dark:bg-neutral rounded-lg shadow-md'>
