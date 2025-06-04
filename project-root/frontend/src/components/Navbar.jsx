@@ -249,13 +249,14 @@ const Navbar = () => {
           >
             Blogs
           </Link>
-          <Link
-            to='/create'
-            onClick={closeMenu}
-            className='block hover:text-primary'
-          >
-            Create
+          <Link to='/news' className='hover:text-primary transition'>
+            News
           </Link>
+          {currentUser && (
+            <Link to='/create' className='hover:text-primary transition'>
+              Create
+            </Link>
+          )}
           {currentUser ? (
             <div className='relative' ref={userMenuRef}>
               <button
