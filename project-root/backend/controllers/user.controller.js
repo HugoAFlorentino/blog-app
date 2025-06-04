@@ -16,14 +16,14 @@ import verifyRecaptcha from '../utils/recaptcha.js';
 const setAuthCookies = (res, accessToken, refreshToken) => {
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    secure: NODE_ENV === 'production',
+    secure: true,
     sameSite: 'strict',
     maxAge: 15 * 60 * 1000, // 15 minutes
     path: '/',
   });
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: NODE_ENV === 'production',
+    secure: true,
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
@@ -276,7 +276,7 @@ export const refreshToken = async (req, res) => {
 
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
-      secure: NODE_ENV === 'production',
+      secure: true,
       sameSite: 'strict',
       maxAge: 15 * 60 * 1000,
       path: '/',
@@ -304,13 +304,13 @@ export const refreshToken = async (req, res) => {
 export const logoutUser = async (req, res) => {
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: NODE_ENV === 'production',
+    secure: true,
     sameSite: 'strict',
     path: '/',
   });
   res.clearCookie('accessToken', {
     httpOnly: true,
-    secure: NODE_ENV === 'production',
+    secure: true,
     sameSite: 'strict',
     path: '/',
   });
