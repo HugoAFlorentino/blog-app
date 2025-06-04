@@ -131,7 +131,7 @@ const Navbar = () => {
     >
       <nav className='max-w-7xl mx-auto px-12 py-3 flex items-center justify-between'>
         <Link to='/' className='text-xl font-bold text-primary'>
-          BlogApp
+          Blogify-press
         </Link>
 
         <div className='relative hidden md:block' ref={searchRef}>
