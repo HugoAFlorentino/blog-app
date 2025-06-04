@@ -248,11 +248,19 @@ const Navbar = () => {
           >
             Blogs
           </Link>
-          <Link to='/news' className='block hover:text-primary'>
+          <Link
+            to='/news'
+            onClick={closeMenu}
+            className='block hover:text-primary'
+          >
             News
           </Link>
           {currentUser && (
-            <Link to='/create' className='block hover:text-primary'>
+            <Link
+              to='/create'
+              onClick={closeMenu}
+              className='block hover:text-primary'
+            >
               Create
             </Link>
           )}
