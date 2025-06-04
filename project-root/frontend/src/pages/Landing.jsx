@@ -31,7 +31,7 @@ const Landing = () => {
     dispatch(getAllPosts());
   }, [dispatch]);
 
-  const lastThreePosts = posts.slice(-3).reverse();
+  const lastThreePosts = Array.isArray(posts) ? posts.slice(-3).reverse() : [];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
