@@ -238,7 +238,6 @@ const Navbar = () => {
 
       {menuOpen && (
         <div ref={menuRef} className='md:hidden px-4 pb-4 space-y-3'>
-          {/* Same links here */}
           <Link to='/' onClick={closeMenu} className='block hover:text-primary'>
             Home
           </Link>
@@ -249,11 +248,11 @@ const Navbar = () => {
           >
             Blogs
           </Link>
-          <Link to='/news' className='hover:text-primary transition'>
+          <Link to='/news' className='block hover:text-primary'>
             News
           </Link>
           {currentUser && (
-            <Link to='/create' className='hover:text-primary transition'>
+            <Link to='/create' className='block hover:text-primary'>
               Create
             </Link>
           )}
