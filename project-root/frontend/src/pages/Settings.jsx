@@ -158,7 +158,7 @@ const Settings = () => {
         })
       ).unwrap();
 
-      toast.success('Password changed successfully!');
+      // toast.success('Password changed successfully!');
       setPasswordForm({
         oldPassword: '',
         newPassword: '',

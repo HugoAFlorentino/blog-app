@@ -33,7 +33,10 @@ const loadReCaptchaScript = () => {
 };
 
 const SignIn = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({
+    email: 'hugoflorentino86@gmail.com',
+    password: 'test123456',
+  });
   const [recaptchaToken, setRecaptchaToken] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
 

@@ -8,11 +8,13 @@ import {
   validateForgotPassword,
   validateResetPassword,
 } from '../validators/authValidators.js';
+import rateLimiter from '../middleware/rateLimit.js';
 
 const authRouter = Router();
 
 authRouter.post(
   '/auth/reset-password',
+  rateLimiter,
   validateForgotPassword,
   validateRequest,
   forgotPassword

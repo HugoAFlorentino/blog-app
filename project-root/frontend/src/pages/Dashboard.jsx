@@ -125,7 +125,12 @@ const Dashboard = () => {
     }
   };
 
-  if (loadingUsers || loadingPosts) return <p>Loading data...</p>;
+  if (loadingUsers || loadingPosts)
+    return (
+      <p className='flex justify-center items-center min-h-screen'>
+        Loading data...
+      </p>
+    );
 
   return (
     <div className='min-h-screen bg-background text-text p-10 max-w-7xl mx-auto'>
