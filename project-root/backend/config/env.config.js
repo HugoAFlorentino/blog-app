@@ -1,6 +1,8 @@
 import { config } from 'dotenv';
 
-config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
+if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+  config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
+}
 
 export const PORT = process.env.PORT || 8080;
 
