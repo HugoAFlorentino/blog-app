@@ -243,7 +243,7 @@ const Navbar = () => {
             Home
           </Link>
           <Link
-            href='/blogs'
+            to='/blogs'
             onClick={closeMenu}
             className='block hover:text-primary'
           >
