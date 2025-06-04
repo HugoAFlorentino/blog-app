@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { signUpUser } from '../redux/userSlice';
+import { signUpUser } from '../redux/userSlice.js';
 import { toast } from 'react-toastify';
 
 const loadReCaptchaScript = () => {

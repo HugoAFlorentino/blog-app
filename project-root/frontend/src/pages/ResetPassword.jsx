@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { resetPassword } from '../redux/userSlice';
+import { resetPassword } from '../redux/userSlice.js';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');

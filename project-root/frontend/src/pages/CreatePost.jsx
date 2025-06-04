@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createPost, clearError, clearMessage } from '../redux/blogSlice';
+import { createPost, clearError, clearMessage } from '../redux/blogSlice.js';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

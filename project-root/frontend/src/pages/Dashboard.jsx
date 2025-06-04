@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchUsers, deleteUser, restoreUser } from '../redux/userSlice.js';
 import { getAllPosts } from '../redux/blogSlice.js';
-import { fetchLogs } from '../redux/logsSlice'; // Make sure this path matches your logs slice
+import { fetchLogs } from '../redux/logsSlice.js';
 
 const Dashboard = () => {
   const dispatch = useDispatch();

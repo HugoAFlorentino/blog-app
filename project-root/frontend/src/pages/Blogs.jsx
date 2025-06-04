@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllPosts, deletePost, updatePost } from '../redux/blogSlice';
-import { sendThankYouEmail } from '../redux/subscriptionSlice';
+import { getAllPosts, deletePost, updatePost } from '../redux/blogSlice.js';
+import { sendThankYouEmail } from '../redux/subscriptionSlice.js';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { refreshUser } from './redux/userSlice';
+import { refreshUser } from './redux/userSlice.js';
 import {
   Landing,
   Blogs,

@@ -7,7 +7,7 @@ import {
   clearMessage,
   changePassword,
   deleteUser,
-} from '../redux/userSlice'; // Adjust path as needed
+} from '../redux/userSlice.js';
 import { toast } from 'react-toastify';
 
 const Settings = () => {
