@@ -25,6 +25,8 @@ const cardVariants = {
   },
 };
 
+const DESCRIPTION_THRESHOLD = 300;
+
 const News = () => {
   const [expanded, setExpanded] = useState({});
 
@@ -86,12 +88,14 @@ const News = () => {
                   {description}
                 </p>
 
-                <button
-                  onClick={() => toggleExpand(id)}
-                  className='text-md text-primary mt-1 self-start hover:underline'
-                >
-                  {isExpanded ? 'Show less' : 'Show more'}
-                </button>
+                {description.length > DESCRIPTION_THRESHOLD && (
+                  <button
+                    onClick={() => toggleExpand(id)}
+                    className='bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition'
+                  >
+                    {isExpanded ? 'Show less' : 'Show more'}
+                  </button>
+                )}
 
                 <span className='text-xs text-text mt-auto'>
                   {new Date(date).toLocaleDateString()}
