@@ -37,22 +37,22 @@ import api from '../utils/axios';
 //   }
 // );
 
-// DEMO createPost logic
+const demoPostTemplate = {
+  title: 'Demo Title by User',
+  body: 'This is a predefined demo post content to simulate a user-generated blog post.',
+  isDemo: true,
+};
+
+// CREATE POST
 export const createPost = createAsyncThunk(
   'blog/createPostDemo',
   async (credentials, thunkAPI) => {
     try {
       const state = thunkAPI.getState();
       const user = state.user.currentUser;
+      const isDemoUser = !!user?.isDemoUser;
 
-      const isDemoUser = user?.isDemoUser;
-
-      const demoPostTemplate = {
-        title: 'Demo Title by User',
-        body: 'This is a predefined demo post content to simulate a user-generated blog post.',
-        isDemo: true, // mark demo posts
-      };
-
+      // If demo user, send demo template ignoring credentials
       const finalPayload = isDemoUser ? demoPostTemplate : credentials;
 
       const response = await api.post('/blog', finalPayload, {
@@ -68,7 +68,7 @@ export const createPost = createAsyncThunk(
   }
 );
 
-// DEMO GET POSTS logic
+// GET ALL POSTS
 export const getAllPosts = createAsyncThunk(
   'blog/getAllPosts',
   async (filter = '', thunkAPI) => {
@@ -77,23 +77,22 @@ export const getAllPosts = createAsyncThunk(
       if (filter) {
         url += `?title=${encodeURIComponent(filter)}`;
       }
-      const response = await api.get(url);
+
+      const response = await api.get(url, { withCredentials: true });
       const posts = response.data.data;
 
-      // Demo template to replace demoUser posts content
-      const demoTemplate = {
-        title: 'Demo Title by User',
-        body: 'This is a predefined demo post content to simulate a user-generated blog post.',
-      };
+      const state = thunkAPI.getState();
+      const currentUser = state.user.currentUser;
+      const isDemoUser = !!currentUser?.isDemoUser;
 
-      // Replace content only for posts authored by demo users
+      // Replace content for posts authored by demo user
       const processedPosts = posts.map((post) => {
-        // Check isDemoUser flag (not role)
-        if (post.author?.isDemoUser) {
+        // Only replace if current user is demo AND post.author._id matches current user id
+        if (isDemoUser && post.author?._id === currentUser._id) {
           return {
             ...post,
-            title: demoTemplate.title,
-            body: demoTemplate.body,
+            title: demoPostTemplate.title,
+            body: demoPostTemplate.body,
           };
         }
         return post;
@@ -108,21 +107,30 @@ export const getAllPosts = createAsyncThunk(
   }
 );
 
-// GET POST BY ID
-export const getPostById = createAsyncThunk(
-  'blog/getPostById',
-  async (id, thunkAPI) => {
+// UPDATE POST
+export const updatePost = createAsyncThunk(
+  'blog/updatePost',
+  async ({ id, updatedData }, thunkAPI) => {
     try {
-      const response = await api.get(`/blog/${id}`);
+      const state = thunkAPI.getState();
+      const user = state.user.currentUser;
+      const isDemoUser = !!user?.isDemoUser;
+
+      // If demo user, send demo template ignoring updates
+      const finalUpdateData = isDemoUser ? demoPostTemplate : updatedData;
+
+      const response = await api.patch(`/blog/${id}`, finalUpdateData, {
+        withCredentials: true,
+      });
+
       return response.data.data;
     } catch (err) {
       const message =
-        err.response?.data?.error || err.message || 'Something went wrong';
+        err.response?.data?.error || err.message || 'Failed to update post';
       return thunkAPI.rejectWithValue(message);
     }
   }
 );
-
 // // PATCH (update) post
 // export const updatePost = createAsyncThunk(
 //   'blog/updatePost',
@@ -140,43 +148,16 @@ export const getPostById = createAsyncThunk(
 //   }
 // );
 
-// PATCH (update) post with demo user template enforcement on response
-export const updatePost = createAsyncThunk(
-  'blog/updatePost',
-  async ({ id, updatedData }, thunkAPI) => {
+// GET POST BY ID
+export const getPostById = createAsyncThunk(
+  'blog/getPostById',
+  async (id, thunkAPI) => {
     try {
-      const response = await api.patch(`/blog/${id}`, updatedData, {
-        withCredentials: true,
-      });
-
-      const updatedPost = response.data.data;
-
-      const state = thunkAPI.getState();
-      const user = state.user.currentUser;
-      const isDemoUser = user?.isDemoUser;
-
-      // Demo post template to enforce for demo users (on client side only)
-      const demoPostTemplate = {
-        title: 'Demo Title by User',
-        body: 'This is a predefined demo post content to simulate a user-generated blog post.',
-        isDemo: true,
-      };
-
-      // Override updatedPost content only for demo users (client side)
-      if (isDemoUser) {
-        return {
-          ...updatedPost,
-          title: demoPostTemplate.title,
-          body: demoPostTemplate.body,
-          isDemo: true,
-        };
-      }
-
-      // For non-demo users, return server data as is
-      return updatedPost;
+      const response = await api.get(`/blog/${id}`);
+      return response.data.data;
     } catch (err) {
       const message =
-        err.response?.data?.error || err.message || 'Failed to update post';
+        err.response?.data?.error || err.message || 'Something went wrong';
       return thunkAPI.rejectWithValue(message);
     }
   }
