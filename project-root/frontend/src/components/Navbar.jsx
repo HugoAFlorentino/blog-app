@@ -130,7 +130,7 @@ const Navbar = () => {
       }`}
     >
       <nav className='max-w-7xl mx-auto px-12 py-3 flex items-center justify-between'>
-        <Link to='/' className='text-xl font-bold text-primary'>
+        <Link to='/' className='text-2xl font-bold text-text'>
           Blogify-press
         </Link>
 

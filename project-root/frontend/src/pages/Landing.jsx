@@ -107,14 +107,38 @@ const Landing = () => {
         variants={fadeUp}
         custom={0.2}
       >
-        <span className='whitespace-nowrap text-accent'>
-          🔥 Breaking: New Framework Released
-        </span>
-        <span className='whitespace-nowrap'>🌐 Design Trends 2025</span>
-        <span className='whitespace-nowrap'>
-          💡 10 JavaScript Tips You Missed
-        </span>
-        <span className='whitespace-nowrap'>🎨 Dark Mode Best Practices</span>
+        <a
+          href='https://www.reuters.com/technology/'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='whitespace-nowrap text-accent'
+        >
+          🔥 Breaking News
+        </a>
+        <a
+          href='https://medium.com/codeart-mk/ux-ui-trends-2025-818ea752c9f7'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='whitespace-nowrap text-accent'
+        >
+          🌐 Design Trends 2025
+        </a>
+        <a
+          href='https://www.geekwire.com/'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='whitespace-nowrap text-accent'
+        >
+          💡 GeekWire
+        </a>
+        <a
+          href='https://www.designstudiouiux.com/blog/dark-mode-ui-design-best-practices/'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='whitespace-nowrap text-accent'
+        >
+          🎨 Dark Mode Best Practices
+        </a>
       </motion.div>
 
       {/* Carousel */}
@@ -179,7 +203,7 @@ const Landing = () => {
                   </p>
                 </div>
                 <button
-                  className='text-primary font-semibold hover:underline self-start'
+                  className='bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition self-start'
                   onClick={() => navigate('/news')}
                 >
                   Read More →
@@ -246,7 +270,7 @@ const Landing = () => {
 
               <button
                 onClick={() => navigate(`/blogs/${post._id}`)}
-                className='text-sm text-primary hover:underline'
+                className='bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition'
               >
                 Read More →
               </button>
