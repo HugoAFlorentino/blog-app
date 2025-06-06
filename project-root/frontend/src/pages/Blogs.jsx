@@ -186,7 +186,7 @@ const Blogs = () => {
                     key={post._id}
                     ref={(el) => (postRefs.current[post._id] = el)}
                     id={post._id}
-                    className='bg-white dark:bg-neutral p-6 rounded-lg shadow cursor-pointer'
+                    className='bg-white dark:bg-neutral p-6 rounded-lg shadow'
                     variants={postVariants}
                     initial='hidden'
                     whileInView='visible'
@@ -215,7 +215,10 @@ const Blogs = () => {
 
                     {post.body.length > READ_MORE_THRESHOLD && (
                       <button
-                        onClick={() => toggleExpand(post._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpand(post._id);
+                        }}
                         className='bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition'
                       >
                         {isExpanded ? 'Show Less ←' : 'Read More →'}
@@ -223,21 +226,23 @@ const Blogs = () => {
                     )}
 
                     {(isOwner || isAdmin) && (
-                      <>
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className='flex space-x-4 mt-4'
+                      >
                         <button
                           onClick={() => handleEdit(post)}
-                          className='mr-4 px-3 py-1 rounded-md bg-primary text-text font-semibold shadow-sm hover:scale-95 transition duration-150'
+                          className='px-3 py-1 rounded-md bg-primary text-text font-semibold shadow-sm hover:scale-95 transition duration-150'
                         >
                           Edit
                         </button>
-
                         <button
                           onClick={() => confirmDelete(post._id)}
                           className='px-3 py-1 rounded-md bg-accent text-text font-semibold shadow-sm hover:scale-95 transition duration-150'
                         >
                           Delete
                         </button>
-                      </>
+                      </div>
                     )}
                   </motion.div>
                 );
@@ -245,8 +250,7 @@ const Blogs = () => {
           )}
         </div>
 
-        {/* Sidebar (unchanged) */}
-        {/* ... your sidebar and modal code remains unchanged ... */}
+        {/* Sidebar and modal section (if any) */}
       </div>
     </div>
   );

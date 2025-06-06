@@ -297,7 +297,7 @@ const blogSlice = createSlice({
         const id = action.payload;
         const index = state.posts.findIndex((p) => p._id === id);
         if (index !== -1) {
-          state.posts[index].deleted = true; // Assuming API marks deleted posts with a "deleted" flag
+          state.posts[index].isDeleted = true;
         }
         if (state.currentPost?._id === id) {
           state.currentPost.deleted = true;
