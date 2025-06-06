@@ -1,8 +1,9 @@
+// Landing.jsx
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllPosts } from '../redux/blogSlice.js';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getAllPosts } from '../redux/blogSlice.js';
 import newsData from '../utils/newsData.js';
 
 const fadeUp = {
@@ -23,7 +24,7 @@ const fadeInOut = {
 const Landing = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation(); // NEW
+  const location = useLocation();
 
   const { posts, loading, error } = useSelector((state) => state.blogs);
 
@@ -35,7 +36,6 @@ const Landing = () => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-
   const intervalRef = useRef(null);
 
   const prevSlide = () => {
@@ -54,7 +54,6 @@ const Landing = () => {
         );
       }, 3000);
     }
-
     return () => clearInterval(intervalRef.current);
   }, [isPaused]);
 
@@ -62,7 +61,6 @@ const Landing = () => {
     const handleVisibilityChange = () => {
       setIsPaused(document.hidden);
     };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -101,7 +99,7 @@ const Landing = () => {
         </motion.button>
       </motion.section>
 
-      {/* Highlights Bar */}
+      {/* Highlights */}
       <motion.div
         className='flex justify-around space-x-4 overflow-x-auto mb-10 py-3 border-b border-secondary text-sm md:text-base font-medium'
         initial='hidden'
@@ -119,18 +117,6 @@ const Landing = () => {
         <span className='whitespace-nowrap'>🎨 Dark Mode Best Practices</span>
       </motion.div>
 
-      {/* Carousel Header */}
-      <motion.div
-        initial='hidden'
-        animate='visible'
-        variants={fadeUp}
-        custom={0.25}
-      >
-        <h3 className='text-2xl font-heading font-semibold mb-6'>
-          Latest News
-        </h3>
-      </motion.div>
-
       {/* Carousel */}
       <motion.section
         className='mb-16'
@@ -141,7 +127,6 @@ const Landing = () => {
       >
         <div
           className='relative bg-white dark:bg-neutral rounded-xl overflow-hidden shadow-lg flex flex-col w-full max-w-6xl mx-auto carousel-container'
-          style={{ height: 'auto' }}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
@@ -172,10 +157,7 @@ const Landing = () => {
                 animate='animate'
                 exit='exit'
                 loading='lazy'
-                width={800}
-                height={500}
-                srcSet={`${currentNews.image} 480w, ${currentNews.image} 800w, ${currentNews.image} 1200w`}
-                sizes='(max-width: 768px) 100vw, 50vw'
+                fetchpriority='low'
               />
             </AnimatePresence>
 

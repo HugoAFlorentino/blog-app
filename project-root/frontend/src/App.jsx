@@ -1,26 +1,27 @@
-import React, { useEffect } from 'react';
+// App.js
+import React, { useEffect, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { refreshUser } from './redux/userSlice.js';
-import {
-  Landing,
-  Blogs,
-  News,
-  CreatePost,
-  Dashboard,
-  Settings,
-  About,
-  Faq,
-  PrivacyPolicy,
-  Terms,
-  SignIn,
-  SignUp,
-  ForgotPassword,
-  ResetPassword,
-} from './pages/index';
-import { Layout } from './components/index';
+
+// Lazy load all pages
+const Landing = React.lazy(() => import('./pages/Landing'));
+const Blogs = React.lazy(() => import('./pages/Blogs'));
+const News = React.lazy(() => import('./pages/News'));
+const CreatePost = React.lazy(() => import('./pages/CreatePost'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const About = React.lazy(() => import('./pages/About'));
+const Faq = React.lazy(() => import('./pages/Faq'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
+const Terms = React.lazy(() => import('./pages/Terms'));
+const SignIn = React.lazy(() => import('./pages/SignIn'));
+const SignUp = React.lazy(() => import('./pages/SignUp'));
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
+const Layout = React.lazy(() => import('./components/Layout'));
 
 const router = createBrowserRouter([
   {
@@ -52,7 +53,7 @@ const App = () => {
 
   useEffect(() => {
     dispatch(refreshUser()).catch(() => {
-      // swallow error quietly
+      // silent fail
     });
   }, [dispatch]);
 
@@ -66,7 +67,15 @@ const App = () => {
 
   return (
     <>
-      <RouterProvider router={router} />
+      <Suspense
+        fallback={
+          <div className='flex justify-center items-center min-h-screen'>
+            <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'></div>
+          </div>
+        }
+      >
+        <RouterProvider router={router} />
+      </Suspense>
       <ToastContainer
         position='top-center'
         autoClose={3000}
