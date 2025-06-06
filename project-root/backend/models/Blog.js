@@ -37,7 +37,8 @@ const blogSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-blogSchema.index({ title: 1, body: 1 }, { unique: true });
+// DO NOT ALLOW FOR DUPLICATE POSTS
+// blogSchema.index({ title: 1, body: 1 }, { unique: true });
 
 const Blog = mongoose.model('Blog', blogSchema);
 

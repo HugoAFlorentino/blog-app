@@ -18,6 +18,25 @@ import api from '../utils/axios';
 //   }
 // );
 
+// GET ALL POSTS with optional title filter
+// export const getAllPosts = createAsyncThunk(
+//   'blog/getAllPosts',
+//   async (filter = '', thunkAPI) => {
+//     try {
+//       let url = '/blog';
+//       if (filter) {
+//         url += `?title=${encodeURIComponent(filter)}`;
+//       }
+//       const response = await api.get(url);
+//       return response.data.data;
+//     } catch (err) {
+//       const message =
+//         err.response?.data?.error || err.message || 'Something went wrong';
+//       return thunkAPI.rejectWithValue(message);
+//     }
+//   }
+// );
+
 // DEMO createPost logic
 export const createPost = createAsyncThunk(
   'blog/createPostDemo',
@@ -31,6 +50,7 @@ export const createPost = createAsyncThunk(
       const demoPostTemplate = {
         title: 'Demo Title by User',
         body: 'This is a predefined demo post content to simulate a user-generated blog post.',
+        isDemo: true, // mark demo posts
       };
 
       const finalPayload = isDemoUser ? demoPostTemplate : credentials;
@@ -48,7 +68,7 @@ export const createPost = createAsyncThunk(
   }
 );
 
-// GET ALL POSTS with optional title filter
+// DEMO GET POSTS logic
 export const getAllPosts = createAsyncThunk(
   'blog/getAllPosts',
   async (filter = '', thunkAPI) => {
@@ -58,7 +78,28 @@ export const getAllPosts = createAsyncThunk(
         url += `?title=${encodeURIComponent(filter)}`;
       }
       const response = await api.get(url);
-      return response.data.data;
+      const posts = response.data.data;
+
+      // Demo template to replace demoUser posts content
+      const demoTemplate = {
+        title: 'Demo Title by User',
+        body: 'This is a predefined demo post content to simulate a user-generated blog post.',
+      };
+
+      // Replace content only for posts authored by demo users
+      const processedPosts = posts.map((post) => {
+        // Check isDemoUser flag (not role)
+        if (post.author?.isDemoUser) {
+          return {
+            ...post,
+            title: demoTemplate.title,
+            body: demoTemplate.body,
+          };
+        }
+        return post;
+      });
+
+      return processedPosts;
     } catch (err) {
       const message =
         err.response?.data?.error || err.message || 'Something went wrong';
@@ -82,7 +123,24 @@ export const getPostById = createAsyncThunk(
   }
 );
 
-// PATCH (update) post
+// // PATCH (update) post
+// export const updatePost = createAsyncThunk(
+//   'blog/updatePost',
+//   async ({ id, updatedData }, thunkAPI) => {
+//     try {
+//       const response = await api.patch(`/blog/${id}`, updatedData, {
+//         withCredentials: true,
+//       });
+//       return response.data.data;
+//     } catch (err) {
+//       const message =
+//         err.response?.data?.error || err.message || 'Failed to update post';
+//       return thunkAPI.rejectWithValue(message);
+//     }
+//   }
+// );
+
+// PATCH (update) post with demo user template enforcement on response
 export const updatePost = createAsyncThunk(
   'blog/updatePost',
   async ({ id, updatedData }, thunkAPI) => {
@@ -90,7 +148,32 @@ export const updatePost = createAsyncThunk(
       const response = await api.patch(`/blog/${id}`, updatedData, {
         withCredentials: true,
       });
-      return response.data.data;
+
+      const updatedPost = response.data.data;
+
+      const state = thunkAPI.getState();
+      const user = state.user.currentUser;
+      const isDemoUser = user?.isDemoUser;
+
+      // Demo post template to enforce for demo users (on client side only)
+      const demoPostTemplate = {
+        title: 'Demo Title by User',
+        body: 'This is a predefined demo post content to simulate a user-generated blog post.',
+        isDemo: true,
+      };
+
+      // Override updatedPost content only for demo users (client side)
+      if (isDemoUser) {
+        return {
+          ...updatedPost,
+          title: demoPostTemplate.title,
+          body: demoPostTemplate.body,
+          isDemo: true,
+        };
+      }
+
+      // For non-demo users, return server data as is
+      return updatedPost;
     } catch (err) {
       const message =
         err.response?.data?.error || err.message || 'Failed to update post';
