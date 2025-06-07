@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -9,6 +9,7 @@ import {
   deleteUser,
 } from '../redux/userSlice.js';
 import { toast } from 'react-toastify';
+import { EditModal, PasswordModal, DeleteModal } from '../components/index.js';
 
 const Settings = () => {
   const dispatch = useDispatch();
@@ -26,17 +27,12 @@ const Settings = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [softDeleteUser, setSoftDeleteUser] = useState(null);
 
-  const [form, setForm] = useState({
-    username: '',
-    email: '',
-  });
-
+  const [form, setForm] = useState({ username: '', email: '' });
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: '',
     newPassword: '',
     confirmNewPassword: '',
   });
-
   const [passwordError, setPasswordError] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
 
@@ -63,7 +59,8 @@ const Settings = () => {
     }
   }, [updateError, updateMessage, dispatch]);
 
-  const openEditModal = () => {
+  // Handlers
+  const openEditModal = useCallback(() => {
     if (currentUser) {
       setForm({
         username: currentUser.username || '',
@@ -71,22 +68,20 @@ const Settings = () => {
       });
     }
     setShowEditModal(true);
-  };
+  }, [currentUser]);
 
-  const closeEditModal = () => {
-    setShowEditModal(false);
-  };
+  const closeEditModal = useCallback(() => setShowEditModal(false), []);
 
-  const openDeleteModal = () => {
+  const openDeleteModal = useCallback(() => {
     if (currentUser && currentUser._id) {
       setSoftDeleteUser(currentUser._id);
     }
     setShowDeleteModal(true);
-  };
+  }, [currentUser]);
 
-  const closeDeleteModal = () => setShowDeleteModal(false);
+  const closeDeleteModal = useCallback(() => setShowDeleteModal(false), []);
 
-  const openPasswordModal = () => {
+  const openPasswordModal = useCallback(() => {
     setPasswordForm({
       oldPassword: '',
       newPassword: '',
@@ -94,28 +89,29 @@ const Settings = () => {
     });
     setPasswordError('');
     setShowPasswordModal(true);
-  };
+  }, []);
 
-  const closePasswordModal = () => setShowPasswordModal(false);
+  const closePasswordModal = useCallback(() => setShowPasswordModal(false), []);
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleUpdate = (e) => {
-    e.preventDefault();
-    dispatch(updateUser({ username: form.username, email: form.email }))
-      .unwrap()
-      .then(() => {
-        setShowEditModal(false);
-      })
-      .catch(() => {
-        // error handled by Redux state
-      });
-  };
+  const handleUpdate = useCallback(
+    (e) => {
+      e.preventDefault();
+      dispatch(updateUser({ username: form.username, email: form.email }))
+        .unwrap()
+        .then(() => {
+          setShowEditModal(false);
+        })
+        .catch(() => {});
+    },
+    [dispatch, form.username, form.email]
+  );
 
-  const handleSoftDelete = () => {
+  const handleSoftDelete = useCallback(() => {
     if (!softDeleteUser) return;
 
     dispatch(deleteUser(softDeleteUser))
@@ -124,8 +120,6 @@ const Settings = () => {
         toast.success('Account deactivated successfully!');
         setSoftDeleteUser(null);
         setShowDeleteModal(false);
-
-        // Navigate to home page after deletion
         navigate('/');
       })
       .catch(() => {
@@ -133,44 +127,46 @@ const Settings = () => {
         setSoftDeleteUser(null);
         setShowDeleteModal(false);
       });
-  };
+  }, [dispatch, navigate, softDeleteUser]);
 
-  const handlePasswordChangeInput = (e) => {
+  const handlePasswordChangeInput = useCallback((e) => {
     const { name, value } = e.target;
     setPasswordForm((prev) => ({ ...prev, [name]: value }));
     setPasswordError('');
-  };
+  }, []);
 
-  const handlePasswordChangeSubmit = async (e) => {
-    e.preventDefault();
+  const handlePasswordChangeSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
+        setPasswordError("New passwords don't match");
+        return;
+      }
 
-    if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
-      setPasswordError("New passwords don't match");
-      return;
-    }
+      setPasswordLoading(true);
+      try {
+        await dispatch(
+          changePassword({
+            currentPassword: passwordForm.oldPassword,
+            newPassword: passwordForm.newPassword,
+          })
+        ).unwrap();
 
-    setPasswordLoading(true);
-    try {
-      await dispatch(
-        changePassword({
-          currentPassword: passwordForm.oldPassword,
-          newPassword: passwordForm.newPassword,
-        })
-      ).unwrap();
-
-      // toast.success('Password changed successfully!');
-      setPasswordForm({
-        oldPassword: '',
-        newPassword: '',
-        confirmNewPassword: '',
-      });
-      closePasswordModal();
-    } catch (err) {
-      toast.error(err || 'Failed to change password.');
-    } finally {
-      setPasswordLoading(false);
-    }
-  };
+        setPasswordForm({
+          oldPassword: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        });
+        closePasswordModal();
+        toast.success('Password changed successfully!');
+      } catch (err) {
+        toast.error(err || 'Failed to change password.');
+      } finally {
+        setPasswordLoading(false);
+      }
+    },
+    [dispatch, passwordForm, closePasswordModal]
+  );
 
   return (
     <div className='max-w-3xl mx-auto px-6 py-12 bg-white dark:bg-neutral rounded-lg shadow-md space-y-12'>
@@ -230,150 +226,30 @@ const Settings = () => {
         </div>
       </section>
 
-      {/* Edit Modal */}
+      {/* Modals */}
       {showEditModal && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-          <div className='bg-white dark:bg-neutral rounded-lg max-w-md w-full p-6 relative'>
-            <h3 className='text-xl font-semibold mb-4'>Edit Profile</h3>
-            <form onSubmit={handleUpdate} className='space-y-4'>
-              <div>
-                <label htmlFor='username' className='block font-medium mb-1'>
-                  Name
-                </label>
-                <input
-                  id='username'
-                  name='username'
-                  value={form.username}
-                  onChange={handleChange}
-                  className='w-full border border-secondary rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary'
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor='email' className='block font-medium mb-1'>
-                  Email
-                </label>
-                <input
-                  id='email'
-                  name='email'
-                  type='email'
-                  value={form.email}
-                  onChange={handleChange}
-                  className='w-full border border-secondary rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary'
-                  required
-                />
-              </div>
-
-              <div className='flex justify-end space-x-4 mt-6'>
-                <button
-                  type='button'
-                  onClick={closeEditModal}
-                  className='px-4 py-2 rounded-md border border-secondary hover:bg-neutral transition'
-                  disabled={updateLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type='submit'
-                  disabled={updateLoading}
-                  className={`px-5 py-2 rounded-full bg-primary text-white font-semibold hover:bg-accent transition ${
-                    updateLoading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  {updateLoading ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <EditModal
+          form={form}
+          onChange={handleChange}
+          onClose={closeEditModal}
+          onSubmit={handleUpdate}
+          loading={updateLoading}
+        />
       )}
 
-      {/* Password Change Modal */}
       {showPasswordModal && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
-          <div className='bg-white dark:bg-neutral rounded-lg max-w-md w-full p-6 relative'>
-            <h3 className='text-xl font-semibold mb-4'>Change Password</h3>
-            <form onSubmit={handlePasswordChangeSubmit} className='space-y-4'>
-              <input
-                type='password'
-                name='oldPassword'
-                placeholder='Current Password'
-                value={passwordForm.oldPassword}
-                onChange={handlePasswordChangeInput}
-                required
-                className='w-full px-3 py-2 border border-secondary rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
-              />
-              <input
-                type='password'
-                name='newPassword'
-                placeholder='New Password'
-                value={passwordForm.newPassword}
-                onChange={handlePasswordChangeInput}
-                required
-                className='w-full px-3 py-2 border border-secondary rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
-              />
-              <input
-                type='password'
-                name='confirmNewPassword'
-                placeholder='Confirm New Password'
-                value={passwordForm.confirmNewPassword}
-                onChange={handlePasswordChangeInput}
-                required
-                className='w-full px-3 py-2 border border-secondary rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
-              />
-
-              {passwordError && <p className='text-red-600'>{passwordError}</p>}
-
-              <div className='flex justify-end space-x-4 mt-6'>
-                <button
-                  type='button'
-                  onClick={closePasswordModal}
-                  className='px-4 py-2 rounded-md border border-secondary hover:bg-neutral transition'
-                  disabled={passwordLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type='submit'
-                  className='px-5 py-2 rounded-full bg-primary text-white font-semibold hover:bg-accent transition'
-                  disabled={passwordLoading}
-                >
-                  {passwordLoading ? 'Changing...' : 'Change Password'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <PasswordModal
+          passwordForm={passwordForm}
+          onChange={handlePasswordChangeInput}
+          onClose={closePasswordModal}
+          onSubmit={handlePasswordChangeSubmit}
+          loading={passwordLoading}
+          error={passwordError}
+        />
       )}
 
-      {/* Delete Modal */}
       {showDeleteModal && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-          <div className='bg-white dark:bg-neutral rounded-lg max-w-md w-full p-6 relative'>
-            <h3 className='text-xl font-semibold mb-4 text-red-600'>
-              Deactivate Account
-            </h3>
-            <p className='mb-6'>
-              Are you sure you want to deactivate your account? This will make
-              your profile inactive but will not delete your data.
-            </p>
-            <div className='flex justify-end space-x-4'>
-              <button
-                onClick={closeDeleteModal}
-                className='px-4 py-2 rounded-md border border-secondary hover:bg-neutral transition'
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSoftDelete}
-                className='px-5 py-2 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition'
-              >
-                Deactivate
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteModal onClose={closeDeleteModal} onDelete={handleSoftDelete} />
       )}
     </div>
   );

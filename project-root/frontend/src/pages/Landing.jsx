@@ -1,8 +1,7 @@
-// Landing.jsx
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { getAllPosts } from '../redux/blogSlice.js';
 import newsData from '../utils/newsData.js';
 
@@ -21,63 +20,161 @@ const fadeInOut = {
   exit: { opacity: 0, y: -10, transition: { duration: 0.4, ease: 'easeIn' } },
 };
 
+const Highlights = React.memo(() => (
+  <motion.div
+    className='flex justify-around space-x-4 overflow-x-auto mb-10 py-3 border-b border-secondary text-sm md:text-base font-medium'
+    initial='hidden'
+    animate='visible'
+    variants={fadeUp}
+    custom={0.2}
+  >
+    <a
+      href='https://www.reuters.com/technology/'
+      target='_blank'
+      rel='noopener noreferrer'
+      className='whitespace-nowrap text-accent'
+    >
+      🔥 Breaking News
+    </a>
+    <a
+      href='https://medium.com/codeart-mk/ux-ui-trends-2025-818ea752c9f7'
+      target='_blank'
+      rel='noopener noreferrer'
+      className='whitespace-nowrap text-accent'
+    >
+      🌐 Design Trends 2025
+    </a>
+    <a
+      href='https://www.geekwire.com/'
+      target='_blank'
+      rel='noopener noreferrer'
+      className='whitespace-nowrap text-accent'
+    >
+      💡 GeekWire
+    </a>
+    <a
+      href='https://www.designstudiouiux.com/blog/dark-mode-ui-design-best-practices/'
+      target='_blank'
+      rel='noopener noreferrer'
+      className='whitespace-nowrap text-accent'
+    >
+      🎨 Dark Mode Best Practices
+    </a>
+  </motion.div>
+));
+
+const Carousel = React.memo(
+  ({ currentNews, onPrev, onNext, isPaused, setIsPaused }) => (
+    <motion.section
+      className='mb-16'
+      initial='hidden'
+      whileInView='visible'
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={0.3}
+    >
+      <div
+        className='relative bg-white dark:bg-neutral rounded-xl overflow-hidden shadow-lg flex flex-col w-full max-w-6xl mx-auto h-auto md:h-[500px]'
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <div className='flex flex-col md:flex-row h-full'>
+          <motion.img
+            key={currentNews.id}
+            src={currentNews.image}
+            alt={currentNews.title}
+            className='hidden md:block object-cover w-full md:w-1/2 h-[500px]'
+            variants={fadeInOut}
+            initial='initial'
+            animate='animate'
+            exit='exit'
+            loading='lazy'
+            fetchpriority='low'
+            decoding='async'
+          />
+
+          <motion.div
+            key={currentNews.id + '-text'}
+            className='p-6 flex flex-col justify-between min-h-[300px] md:min-h-full w-full md:w-1/2'
+            variants={fadeInOut}
+            initial='initial'
+            animate='animate'
+            exit='exit'
+          >
+            <div>
+              <h2 className='text-2xl font-heading font-bold mb-2'>
+                {currentNews.title}
+              </h2>
+              <p className='text-secondary mb-4'>{currentNews.description}</p>
+            </div>
+            <button
+              className='bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition self-start'
+              onClick={() => (window.location.href = '/news')}
+            >
+              Read More →
+            </button>
+          </motion.div>
+        </div>
+
+        <button
+          onClick={onPrev}
+          aria-label='Previous Slide'
+          className='absolute top-1/2 left-2 -translate-y-1/2 bg-primary bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-90 transition'
+        >
+          ‹
+        </button>
+        <button
+          onClick={onNext}
+          aria-label='Next Slide'
+          className='absolute top-1/2 right-2 -translate-y-1/2 bg-primary bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-90 transition'
+        >
+          ›
+        </button>
+      </div>
+    </motion.section>
+  )
+);
+
 const Landing = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-
   const { posts, loading, error } = useSelector((state) => state.blogs);
 
   useEffect(() => {
-    dispatch(getAllPosts());
-  }, [dispatch]);
+    if (!posts.length) dispatch(getAllPosts());
+  }, [dispatch, posts.length]);
 
   const lastThreePosts = Array.isArray(posts) ? posts.slice(-3).reverse() : [];
-
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef(null);
 
-  const prevSlide = () => {
+  const prevSlide = () =>
     setCurrentIndex((prev) => (prev === 0 ? newsData.length - 1 : prev - 1));
-  };
-
-  const nextSlide = () => {
+  const nextSlide = () =>
     setCurrentIndex((prev) => (prev === newsData.length - 1 ? 0 : prev + 1));
-  };
 
   useEffect(() => {
     if (!isPaused) {
       intervalRef.current = setInterval(() => {
-        setCurrentIndex((prev) =>
-          prev === newsData.length - 1 ? 0 : prev + 1
-        );
+        setCurrentIndex((prev) => (prev + 1) % newsData.length);
       }, 3000);
     }
     return () => clearInterval(intervalRef.current);
   }, [isPaused]);
 
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      setIsPaused(document.hidden);
-    };
+    const handleVisibilityChange = () => setIsPaused(document.hidden);
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
+    return () =>
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, []);
 
   const currentNews = newsData[currentIndex];
-  const nextIndex = (currentIndex + 1) % newsData.length;
-
-  useEffect(() => {
-    const nextImage = new Image();
-    nextImage.src = newsData[nextIndex].image;
-  }, [currentIndex, nextIndex]);
 
   return (
     <div className='px-4 md:px-12 max-w-7xl mx-auto' key={location.pathname}>
-      {/* Hero */}
       <motion.section
         className='bg-primary text-text rounded-2xl p-10 text-center mb-12 shadow-md'
         initial='hidden'
@@ -99,141 +196,20 @@ const Landing = () => {
         </motion.button>
       </motion.section>
 
-      {/* Highlights */}
-      <motion.div
-        className='flex justify-around space-x-4 overflow-x-auto mb-10 py-3 border-b border-secondary text-sm md:text-base font-medium'
-        initial='hidden'
-        animate='visible'
-        variants={fadeUp}
-        custom={0.2}
-      >
-        <a
-          href='https://www.reuters.com/technology/'
-          target='_blank'
-          rel='noopener noreferrer'
-          className='whitespace-nowrap text-accent'
-        >
-          🔥 Breaking News
-        </a>
-        <a
-          href='https://medium.com/codeart-mk/ux-ui-trends-2025-818ea752c9f7'
-          target='_blank'
-          rel='noopener noreferrer'
-          className='whitespace-nowrap text-accent'
-        >
-          🌐 Design Trends 2025
-        </a>
-        <a
-          href='https://www.geekwire.com/'
-          target='_blank'
-          rel='noopener noreferrer'
-          className='whitespace-nowrap text-accent'
-        >
-          💡 GeekWire
-        </a>
-        <a
-          href='https://www.designstudiouiux.com/blog/dark-mode-ui-design-best-practices/'
-          target='_blank'
-          rel='noopener noreferrer'
-          className='whitespace-nowrap text-accent'
-        >
-          🎨 Dark Mode Best Practices
-        </a>
-      </motion.div>
+      <Highlights />
+      <Carousel
+        currentNews={currentNews}
+        onPrev={prevSlide}
+        onNext={nextSlide}
+        isPaused={isPaused}
+        setIsPaused={setIsPaused}
+      />
 
-      {/* Carousel */}
-      <motion.section
-        className='mb-16'
-        initial='hidden'
-        animate='visible'
-        variants={fadeUp}
-        custom={0.3}
-      >
-        <div
-          className='relative bg-white dark:bg-neutral rounded-xl overflow-hidden shadow-lg flex flex-col w-full max-w-6xl mx-auto carousel-container'
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          <style>{`
-            @media (min-width: 750px) {
-              .carousel-layout { flex-direction: row; }
-              .carousel-img, .carousel-text { width: 50%; height: 500px; }
-              .carousel-img { display: block; }
-              .carousel-container { height: 500px; }
-            }
-            @media (max-width: 749px) {
-              .carousel-layout { flex-direction: column; }
-              .carousel-text { width: 100%; height: auto; }
-              .carousel-img { display: none; }
-              .carousel-container { height: auto; }
-            }
-          `}</style>
-
-          <div className='carousel-layout flex'>
-            <AnimatePresence mode='wait'>
-              <motion.img
-                key={currentNews.id}
-                src={currentNews.image}
-                alt={currentNews.title}
-                className='carousel-img object-cover flex-shrink-0'
-                variants={fadeInOut}
-                initial='initial'
-                animate='animate'
-                exit='exit'
-                loading='lazy'
-                fetchpriority='low'
-              />
-            </AnimatePresence>
-
-            <AnimatePresence mode='wait'>
-              <motion.div
-                key={currentNews.id + '-text'}
-                className='carousel-text p-6 flex flex-col justify-between'
-                variants={fadeInOut}
-                initial='initial'
-                animate='animate'
-                exit='exit'
-              >
-                <div>
-                  <h2 className='text-2xl font-heading font-bold mb-2'>
-                    {currentNews.title}
-                  </h2>
-                  <p className='text-secondary mb-4'>
-                    {currentNews.description}
-                  </p>
-                </div>
-                <button
-                  className='bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition self-start'
-                  onClick={() => navigate('/news')}
-                >
-                  Read More →
-                </button>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <button
-            onClick={prevSlide}
-            aria-label='Previous Slide'
-            className='absolute top-1/2 left-2 -translate-y-1/2 bg-primary bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-90 transition'
-          >
-            ‹
-          </button>
-          <button
-            onClick={nextSlide}
-            aria-label='Next Slide'
-            className='absolute top-1/2 right-2 -translate-y-1/2 bg-primary bg-opacity-70 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-90 transition'
-          >
-            ›
-          </button>
-        </div>
-      </motion.section>
-
-      {/* Latest Posts */}
       <section>
         <motion.div
           initial='hidden'
-          animate='visible'
+          whileInView='visible'
+          viewport={{ once: true }}
           variants={fadeUp}
           custom={0.35}
         >
@@ -251,7 +227,8 @@ const Landing = () => {
               key={post._id}
               className='bg-white dark:bg-neutral p-4 rounded-lg shadow hover:shadow-md transition'
               initial='hidden'
-              animate='visible'
+              whileInView='visible'
+              viewport={{ once: true }}
               variants={fadeUp}
               custom={0.4 + i * 0.1}
             >
@@ -261,13 +238,11 @@ const Landing = () => {
                   ? post.body.substring(0, 100) + '...'
                   : post.body}
               </p>
-
               {post.author && (
                 <p className='text-xs text-gray-500 mb-2'>
                   By <span className='font-medium'>{post.author.username}</span>
                 </p>
               )}
-
               <button
                 onClick={() => navigate(`/blogs/${post._id}`)}
                 className='bg-primary text-text px-4 py-2 rounded-md font-semibold shadow-sm hover:scale-95 duration-300 transition'
