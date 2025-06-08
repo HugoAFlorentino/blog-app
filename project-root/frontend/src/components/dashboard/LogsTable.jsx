@@ -1,6 +1,3 @@
-// src/components/Dashboard/LogsTable.jsx
-import React from 'react';
-
 const LogsTable = ({
   logs,
   logsStatus,
@@ -30,7 +27,22 @@ const LogsTable = ({
           <thead className='bg-primary/10'>
             <tr>
               <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
-                Message
+                Action
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                User ID
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                Blog ID
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                User Agent
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                IP
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                Details
               </th>
               <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
                 Created At
@@ -40,7 +52,7 @@ const LogsTable = ({
           <tbody className='divide-y divide-primary'>
             {logs.length === 0 && (
               <tr>
-                <td colSpan='2' className='text-center py-6 text-secondary'>
+                <td colSpan='7' className='text-center py-6 text-secondary'>
                   No logs to display.
                 </td>
               </tr>
@@ -49,7 +61,20 @@ const LogsTable = ({
               const logId = log._id || log.id || `log-${idx}`;
               return (
                 <tr key={logId} className='hover:bg-primary transition-colors'>
-                  <td className='px-6 py-4 whitespace-nowrap'>{log.message}</td>
+                  <td className='px-6 py-4 whitespace-nowrap'>{log.action}</td>
+                  <td className='px-6 py-4 whitespace-nowrap'>{log.userId}</td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+                    {log.blogId || '-'}
+                  </td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+                    {log.userAgent || '-'}
+                  </td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+                    {log.ip || '-'}
+                  </td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+                    {log.details ? JSON.stringify(log.details) : '-'}
+                  </td>
                   <td className='px-6 py-4 whitespace-nowrap'>
                     {new Date(log.createdAt).toLocaleString()}
                   </td>

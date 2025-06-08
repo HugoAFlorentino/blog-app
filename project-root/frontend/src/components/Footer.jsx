@@ -18,10 +18,8 @@ const Footer = () => {
   useEffect(() => {
     if (status === 'succeeded') {
       setEmail('');
-      // reset status after 3 seconds (optional)
-      const timer = setTimeout(() => {
-        // you can dispatch an action here if you add one to reset status in the slice
-      }, 3000);
+
+      const timer = setTimeout(() => {}, 3000);
 
       return () => clearTimeout(timer);
     }

@@ -1,4 +1,3 @@
-// src/components/Dashboard/UsersTable.jsx
 import React from 'react';
 
 const UsersTable = ({

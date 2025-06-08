@@ -4,7 +4,7 @@ const logActivity = async ({
   userId,
   action,
   blogId = null,
-  req = {}, // default to empty object
+  req = {},
   details = {},
 }) => {
   try {

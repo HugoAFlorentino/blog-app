@@ -59,7 +59,6 @@ const Settings = () => {
     }
   }, [updateError, updateMessage, dispatch]);
 
-  // Handlers
   const openEditModal = useCallback(() => {
     if (currentUser) {
       setForm({

@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllPosts, deletePost, updatePost } from '../redux/blogSlice.js';
-import { sendThankYouEmail } from '../redux/subscriptionSlice.js';
+import { getAllPosts } from '../redux/blogSlice.js';
 import { useParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import BlogCard from '../components/BlogCard.jsx';
+import BlogCard from '../components/blog/BlogCard.jsx';
+import AdSidebar from '../components/blog/AdSidebar.jsx';
 
 const Blogs = () => {
   const dispatch = useDispatch();
@@ -14,13 +13,6 @@ const Blogs = () => {
 
   const [expandedPosts, setExpandedPosts] = useState({});
   const postRefs = useRef({});
-
-  const [showModal, setShowModal] = useState(false);
-  const [editingPost, setEditingPost] = useState(null);
-  const [editedTitle, setEditedTitle] = useState('');
-  const [editedBody, setEditedBody] = useState('');
-  const [deletePostId, setDeletePostId] = useState(null);
-  const [subscriberEmail, setSubscriberEmail] = useState('');
 
   useEffect(() => {
     dispatch(getAllPosts());
@@ -38,84 +30,6 @@ const Blogs = () => {
 
   const toggleExpand = (postId) => {
     setExpandedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
-  };
-
-  const confirmDelete = (postId) => {
-    setDeletePostId(postId);
-  };
-
-  const cancelDelete = () => {
-    setDeletePostId(null);
-  };
-
-  const handleDelete = () => {
-    if (!deletePostId) return;
-
-    dispatch(deletePost(deletePostId))
-      .unwrap()
-      .then(() => {
-        toast.success('Post deleted successfully!');
-        setDeletePostId(null);
-        dispatch(getAllPosts());
-      })
-      .catch(() => {
-        toast.error('Failed to delete post.');
-        setDeletePostId(null);
-      });
-  };
-
-  const handleEdit = (post) => {
-    setEditingPost(post);
-    setEditedTitle(post.title);
-    setEditedBody(post.body);
-    setShowModal(true);
-  };
-
-  const handleSave = () => {
-    if (editingPost && editedTitle.trim()) {
-      dispatch(
-        updatePost({
-          id: editingPost._id,
-          updatedData: { title: editedTitle, body: editedBody },
-        })
-      )
-        .unwrap()
-        .then(() => {
-          toast.success('Post updated successfully!');
-          setShowModal(false);
-          setEditingPost(null);
-          window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: 'smooth',
-          });
-          dispatch(getAllPosts());
-        })
-        .catch(() => {
-          toast.error('Failed to update post.');
-        });
-    }
-  };
-
-  const handleModalClose = () => {
-    setShowModal(false);
-    setEditingPost(null);
-  };
-
-  const handleSubscription = () => {
-    if (!subscriberEmail.trim()) {
-      toast.error('Please enter a valid email.');
-      return;
-    }
-
-    dispatch(sendThankYouEmail(subscriberEmail))
-      .unwrap()
-      .then(() => {
-        toast.success('Thanks for subscribing!');
-        setSubscriberEmail('');
-      })
-      .catch((err) => {
-        toast.error(`Subscription failed: ${err?.message || 'Unknown error'}`);
-      });
   };
 
   return (
@@ -152,8 +66,6 @@ const Blogs = () => {
                     toggleExpand={toggleExpand}
                     isOwner={isOwner}
                     isAdmin={isAdmin}
-                    handleEdit={handleEdit}
-                    confirmDelete={confirmDelete}
                     postRef={(el) => (postRefs.current[post._id] = el)}
                   />
                 );
@@ -161,10 +73,10 @@ const Blogs = () => {
           )}
         </div>
 
-        {/* Sidebar and modal sections can go here */}
+        <div className='mt-10 lg:mt-0'>
+          <AdSidebar />
+        </div>
       </div>
-
-      {/* Your modal for editing posts and subscription form would be here */}
     </div>
   );
 };

@@ -85,9 +85,7 @@ export const getAllPosts = createAsyncThunk(
       const currentUser = state.user.currentUser;
       const isDemoUser = !!currentUser?.isDemoUser;
 
-      // Replace content for posts authored by demo user
       const processedPosts = posts.map((post) => {
-        // Only replace if current user is demo AND post.author._id matches current user id
         if (isDemoUser && post.author?._id === currentUser._id) {
           return {
             ...post,
@@ -116,7 +114,6 @@ export const updatePost = createAsyncThunk(
       const user = state.user.currentUser;
       const isDemoUser = !!user?.isDemoUser;
 
-      // If demo user, send demo template ignoring updates
       const finalUpdateData = isDemoUser ? demoPostTemplate : updatedData;
 
       const response = await api.patch(`/blog/${id}`, finalUpdateData, {
@@ -241,7 +238,6 @@ const blogSlice = createSlice({
       .addCase(getAllPosts.fulfilled, (state, action) => {
         state.loading = false;
         state.posts = action.payload;
-        state.message = 'Posts fetched successfully';
       })
       .addCase(getAllPosts.rejected, (state, action) => {
         state.loading = false;

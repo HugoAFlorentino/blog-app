@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import api from '../utils/axios';
 
-// Helper to handle API responses according to your backend standard
+// Helper to handle API responses
 const handleApiResponse = (res, thunkAPI) => {
   if (res.data.status === 'success') {
     return res.data.data;
@@ -171,7 +171,7 @@ export const updateUser = createAsyncThunk(
         { withCredentials: true }
       );
       const data = await handleApiResponse(res, thunkAPI);
-      return data; // updated user object
+      return data;
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.error ||

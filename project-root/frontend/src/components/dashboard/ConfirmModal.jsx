@@ -1,4 +1,3 @@
-// src/components/Dashboard/ConfirmModal.jsx
 import React from 'react';
 
 const ConfirmModal = ({ isOpen, action, onCancel, onConfirm }) => {

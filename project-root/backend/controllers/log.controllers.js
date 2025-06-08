@@ -2,7 +2,6 @@ import Log from '../models/Log.js';
 
 export const getLogs = async (req, res) => {
   try {
-    // Fetch last 50 logs, sorted by newest first
     const logs = await Log.find().sort({ createdAt: -1 }).limit(50).lean();
 
     res.json(logs);
