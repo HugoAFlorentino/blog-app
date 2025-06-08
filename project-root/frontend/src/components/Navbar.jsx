@@ -13,82 +13,55 @@ const Navbar = () => {
   const [showNavbar, setShowNavbar] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPosts, setFilteredPosts] = useState([]);
+
   const lastScrollY = useRef(0);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
-  const { posts } = useSelector((state) => state.blogs); // <- correct state here
+  const { posts } = useSelector((state) => state.blogs);
 
   const userMenuRef = useRef();
   const menuRef = useRef();
   const searchRef = useRef();
 
+  // Handle dark/light theme toggle
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  // Hide/show navbar on scroll
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
-        setShowNavbar(false);
-      } else {
-        setShowNavbar(true);
-      }
+      setShowNavbar(
+        currentScrollY < lastScrollY.current || currentScrollY < 50
+      );
       lastScrollY.current = currentScrollY;
     };
 
     window.addEventListener('scroll', handleScroll);
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close user menu if clicked outside
+  // Close dropdowns on outside click
   useEffect(() => {
-    const handleClickOutsideUserMenu = (e) => {
+    const handleClickOutside = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setUserMenuOpen(false);
       }
-    };
-    document.addEventListener('mousedown', handleClickOutsideUserMenu);
-    return () =>
-      document.removeEventListener('mousedown', handleClickOutsideUserMenu);
-  }, []);
-
-  // Close mobile menu if clicked outside
-  useEffect(() => {
-    const handleClickOutsideMenu = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setMenuOpen(false);
       }
-    };
-
-    if (menuOpen) {
-      document.addEventListener('mousedown', handleClickOutsideMenu);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutsideMenu);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideMenu);
-    };
-  }, [menuOpen]);
-
-  // Close search dropdown if clicked outside
-  useEffect(() => {
-    const handleClickOutsideSearch = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
         setFilteredPosts([]);
       }
     };
-    document.addEventListener('mousedown', handleClickOutsideSearch);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutsideSearch);
-    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter posts locally as user types in search
+  // Filter posts as user types
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredPosts([]);
@@ -98,30 +71,27 @@ const Navbar = () => {
     const filtered = posts.filter((post) =>
       post.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setFilteredPosts(filtered.slice(0, 5)); // limit to top 5 results
+    setFilteredPosts(filtered.slice(0, 5));
   }, [searchTerm, posts]);
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  // Navigate after logout when user becomes null
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
 
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
   const handleResultClick = (id) => {
     setSearchTerm('');
     setFilteredPosts([]);
     navigate(`/blogs/${id}`);
   };
 
-  const toggleTheme = () => {
+  const toggleTheme = () =>
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
-
-  const toggleMenu = () => {
-    setMenuOpen((prev) => !prev);
-  };
-
-  const closeMenu = () => {
-    setMenuOpen(false);
-  };
+  const toggleMenu = () => setMenuOpen((prev) => !prev);
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <header
@@ -183,13 +153,13 @@ const Navbar = () => {
               </button>
               {userMenuOpen && (
                 <div className='absolute right-0 mt-2 w-40 bg-neutral text-text rounded shadow-md z-20'>
-                  <a
-                    href='/dashboard'
+                  <Link
+                    to='/dashboard'
                     onClick={() => setUserMenuOpen(false)}
                     className='block px-4 py-2 hover:bg-primary transition'
                   >
                     Dashboard
-                  </a>
+                  </Link>
                   <Link
                     to='/settings'
                     onClick={() => setUserMenuOpen(false)}
@@ -201,7 +171,7 @@ const Navbar = () => {
                     onClick={() => {
                       dispatch(logoutUser());
                       setUserMenuOpen(false);
-                      navigate('/');
+                      closeMenu();
                     }}
                     className='block w-full text-left px-4 py-2 hover:bg-red-500 transition'
                   >
@@ -278,7 +248,7 @@ const Navbar = () => {
                     to='/dashboard'
                     onClick={() => {
                       setUserMenuOpen(false);
-                      closeMenu(); // Add this
+                      closeMenu();
                     }}
                     className='block px-4 py-2 hover:bg-primary transition'
                   >
@@ -288,7 +258,7 @@ const Navbar = () => {
                     to='/settings'
                     onClick={() => {
                       setUserMenuOpen(false);
-                      closeMenu(); // Add this
+                      closeMenu();
                     }}
                     className='block px-4 py-2 hover:bg-primary transition'
                   >
