@@ -6,164 +6,89 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-4.x%2B-green?logo=mongodb)](https://www.mongodb.com/)
 [![Express.js](https://img.shields.io/badge/Express.js-4.x%2B-blue?logo=express)](https://expressjs.com/)
 
-A full-stack portfolio blog application featuring multi-user authentication, role-based access, posts, comments, soft delete/restore, and a comprehensive admin dashboard with activity logs.
+A full-stack portfolio blog application featuring multi-user authentication, role-based access, posts, comments, soft delete/restore, and a powerful admin dashboard with activity logs.
 
-## Table of Contents
+---
 
--   [Project Description](#project-description)
--   [Features](#features)
--   [Live Demo](#live-demo)
--   [Screenshots](#screenshots)
--   [Tech Stack](#tech-stack)
--   [Setup & Installation](#setup--installation)
--   [Environment Variables](#environment-variables)
--   [Usage](#usage)
--   [API Endpoints](#api-endpoints)
--   [Contributing](#contributing)
--   [License](#license)
--   [Contact](#contact)
+## 📚 Table of Contents
 
-## Project Description
+- [Project Description](#project-description)
+- [Features](#features)
+- [Live Demo](#live-demo)
+- [Screenshots](#screenshots)
+- [Tech Stack](#tech-stack)
+- [Setup & Installation](#setup--installation)
+- [Environment Variables](#environment-variables)
+- [Usage](#usage)
+- [API Endpoints](#api-endpoints)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
-Blogify Press is a robust full-stack application designed as a comprehensive blogging platform. It offers a secure and interactive environment where users can register, authenticate via JWT (JSON Web Tokens), create and manage their own blog posts, and interact with content.
+---
 
-A key highlight is the **Admin Dashboard**, which provides powerful administrative controls, including user management with soft delete and restore capabilities, granular post management, and detailed activity logs for auditing user and admin actions. The application prioritizes security with various middlewares and integrates external services like Google reCAPTCHA for bot protection and Brevo (Sendinblue) for email notifications (e.g., password resets).
+## 📖 Project Description
 
-## Features
+**Blogify Press** is a portfolio-grade, full-stack blog application built for modern publishing. Users can create and manage posts, while admin users gain powerful control over platform activity through a dedicated dashboard.
 
--   **User Authentication & Authorization:**
-    -   Secure user registration and authentication using JWT (Access and Refresh Tokens).
-    -   Role-based authorization middleware (e.g., Admin, User).
-    -   Password management: change password and forgot password flows with email reset (via Brevo).
--   **Security & Optimization:**
-    -   Robust security middlewares: `helmet`, `cors`, `xss-clean`, `express-mongo-sanitize`, rate limiting.
-    -   Google reCAPTCHA integration for bot protection during critical actions.
-    -   Frontend optimization with React, Redux, Tailwind CSS, Framer Motion, and React Helmet Async.
--   **Content Management:**
-    -   Create, read, update, and soft delete/restore functionality for blog posts.
-    -   Users can manage their own content.
--   **User Management (Admin):**
-    -   Admin dashboard for comprehensive user management.
-    -   Soft delete and restore functionality for user accounts.
--   **Activity Logging:**
-    -   Detailed activity logging of significant user and admin actions (e.g., login, post creation, deletions) for auditing.
--   **Email Notifications:**
-    -   Integration with Brevo (Sendinblue) for transactional emails (e.g., password reset links).
--   **Data Validation:**
-    -   Robust validation and sanitization using `express-validator` and custom middlewares.
+Key features include user authentication with JWT, role-based access control, soft delete/restore functionality, detailed activity logging, reCAPTCHA protection, and email notifications via Brevo.
 
-## Live Demo
+---
 
- Blogify Press live: (https://blogify-press.netlify.app/)
+## 🚀 Features
 
-## Screenshots
+- **Authentication & Authorization**
+  - JWT-based secure login (access & refresh tokens)
+  - Role-based access control (Admin, User)
+  - Brevo-powered password reset via email
 
-Explore the user interface and administrative panels of Blogify Press.
+- **Security & Bot Protection**
+  - Security middleware: `helmet`, `cors`, `xss-clean`, `mongo-sanitize`, rate limiter
+  - Google reCAPTCHA integration
 
-### Landing Page
-https://github.com/user-attachments/assets/00f1ad90-533f-43db-a492-0c279b4ba661
+- **Content Management**
+  - CRUD operations for blog posts with soft delete/restore
+  - User-only access to their own content
 
+- **Admin Dashboard**
+  - Manage users (soft delete & restore)
+  - Review and manage posts
+  - Audit logs of all key actions
 
-### User Management Dashboard
-*(Admin View)*
-https://github.com/user-attachments/assets/fbffc0e7-d44f-409a-88ba-6ee272c277dd
+- **UI & UX Optimization**
+  - Modern frontend with React 18, Redux Toolkit, Tailwind CSS
+  - Smooth transitions via Framer Motion
+  - SEO with React Helmet Async
 
+- **Notifications & Validation**
+  - Email support using Brevo API (Sendinblue)
+  - Form validation via `express-validator` and custom middleware
 
-### Blog Posts Dashboard
-*(Admin View)*
-https://github.com/user-attachments/assets/b9dd6738-94be-4cda-b32b-da00a2026fdd
+---
 
+## 🔗 Live Demo
 
+👉 [**Try Blogify Press Live**](https://blogify-press.netlify.app/)
 
-## Tech Stack
+---
 
-The application is built with a modern full-stack architecture.
+## 🖼️ Screenshots
 
-### Backend
+### 🔹 Landing Page  
+![Landing Page](https://github.com/user-attachments/assets/00f1ad90-533f-43db-a492-0c279b4ba661)
 
--   **Runtime:** `Node.js` (with `Express.js` framework)
--   **Database:** `MongoDB` with `Mongoose` ODM
--   **Authentication:** `JWT` (JSON Web Tokens), `bcrypt` for password hashing
--   **Security:** `Helmet`, `CORS`, `express-mongo-sanitize`, `xss-clean`, `express-rate-limit`
--   **Email Service:** `Nodemailer` with `Brevo API` (formerly Sendinblue)
--   **Validation:** `express-validator`
--   **Environment Management:** `dotenv`
--   **Utilities:** `cookie-parser`, `body-parser`
+### 🔹 Admin – User Management  
+![User Dashboard](https://github.com/user-attachments/assets/fbffc0e7-d44f-409a-88ba-6ee272c277dd)
 
-### Frontend
+### 🔹 Admin – Posts Dashboard  
+![Posts Dashboard](https://github.com/user-attachments/assets/b9dd6738-94be-4cda-b32b-da00a2026fdd)
 
--   **Framework:** `React 18`
--   **Routing:** `React Router DOM`
--   **State Management:** `Redux Toolkit`
--   **Styling:** `Tailwind CSS`
--   **Animations:** `Framer Motion`
--   **SEO/Metadata:** `React Helmet Async`
--   **API Client:** `Axios`
--   **Bot Protection:** `Google reCAPTCHA`
+---
 
-## Setup & Installation
+## 🛠️ Tech Stack
 
-Follow these steps to get Blogify Press up and running on your local machine.
+### 🔧 Backend
 
-### Backend
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/HugoAFlorentino/blog-app/tree/main/project-root
-    cd backend
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-3.  **Create `.env` file:**
-    Create a `.env` file in the `backend/` directory and populate it with your environment variables (see [Environment Variables](#environment-variables) section).
-4.  **Start the development server:**
-    ```bash
-    npm run dev
-    ```
-    The backend server will typically run on `http://localhost:5500`.
-
-### Frontend
-
-1.  **Navigate to the frontend folder:**
-    ```bash
-    cd frontend
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-3.  **Create `.env` file:**
-    Create a `.env` file in the `frontend/` directory and populate it with your environment variables (see [Environment Variables](#environment-variables) section).
-4.  **Start the development server:**
-    ```bash
-    npm run dev
-    ```
-    The frontend application will typically run on `http://localhost:5173` (or another port chosen by Vite).
-
-## Environment Variables
-
-Ensure you create `.env` files in both your `backend/` and `frontend/` directories with the following variables:
-
-### Frontend (`frontend/.env`)
-
-VITE_API_BASE_URL <br/>
-VITE_RECAPTCHA_SITE_KEY
-
-### Backend (`backend/.env`) 
-
-```ini
-NODE_ENV=development
-PORT=5500
-MONGODB_CONNECTION=your_mongodb_connection_string
-ACCESS_SECRET=your_jwt_access_token_secret
-REFRESH_SECRET=your_jwt_refresh_token_secret
-BREVO_API_KEY=your_brevo_api_key
-BREVO_SENDER_EMAIL=your_email@example.com # Use a verified sender email for Brevo
-FRONTEND_URL=http://localhost:5173 # Or your deployed frontend URL
-SITE_KEY=your_recaptcha_site_key # Google reCAPTCHA site key
-SECRET_KEY=your_recaptcha_secret_key # Google reCAPTCHA secret key
-
+- **Node.js**, **Express.js**
 
 
