@@ -146,7 +146,7 @@ Follow these steps to get Blogify Press up and running on your local machine.
 
 Ensure you create `.env` files in both your `backend/` and `frontend/` directories with the following variables:
 
-### Frontend Frontend (`frontend/.env`)
+### Frontend (`frontend/.env`)
 
 VITE_API_BASE_URL <br/>
 VITE_RECAPTCHA_SITE_KEY
