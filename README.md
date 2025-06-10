@@ -54,7 +54,7 @@ A key highlight is the **Admin Dashboard**, which provides powerful administrati
 
 ## Live Demo
 
- Blogify Press live: [https://your-live-demo-url.com](https://blogify-press.netlify.app/)
+ Blogify Press live: (https://blogify-press.netlify.app/)
 
 ## Screenshots
 
