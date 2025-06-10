@@ -87,36 +87,36 @@ npm install
 ---
 🧩 Backend Environment Variables (used directly in app config):
 
-NODE_ENV=development
-PORT=5500
-MONGODB_CONNECTION=mongodb+srv://your_user:your_pass@cluster.mongodb.net/blogify
-ACCESS_SECRET=your_jwt_access_token_secret
-REFRESH_SECRET=your_jwt_refresh_token_secret
-BREVO_API_KEY=xkeysib-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-BREVO_SENDER_EMAIL=you@example.com
-FRONTEND_URL=http://localhost:5173
-SITE_KEY=your_recaptcha_site_key
-SECRET_KEY=your_recaptcha_secret_key
+- NODE_ENV=development
+- PORT=5500
+- MONGODB_CONNECTION=mongodb+srv://your_user:your_pass@cluster.mongodb.net/blogify
+- ACCESS_SECRET=your_jwt_access_token_secret
+- REFRESH_SECRET=your_jwt_refresh_token_secret
+- BREVO_API_KEY=xkeysib-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+- BREVO_SENDER_EMAIL=you@example.com
+- FRONTEND_URL=http://localhost:5173
+- SITE_KEY=your_recaptcha_site_key
+- SECRET_KEY=your_recaptcha_secret_key
 
 Start backend:
 
-npm run dev
+- npm run dev
 
 ---
 
 💻 Frontend
 
-cd ../frontend
-npm install
+- cd ../frontend
+- npm install
 
 🧩 Frontend Environment Values:
 
-VITE_API_BASE_URL=https://blogify-press-server.onrender.com/api/v1
-VITE_RECAPTCHA_SITE_KEY=your_recaptcha_site_key
+- VITE_API_BASE_URL=https://blogify-press-server.onrender.com/api/v1
+- VITE_RECAPTCHA_SITE_KEY=your_recaptcha_site_key
 
 Start frontend:
 
-npm run dev
+- npm run dev
 
 ---
 
@@ -124,23 +124,23 @@ npm run dev
 
 👤 Regular Users
 
-Register, login, update profile
-Create, edit, delete (soft), and restore blog posts
-Reset password via email with Brevo
-Protected routes using JWT
-reCAPTCHA on signup and reset
+- Register, login, update profile
+- Create, edit, delete (soft), and restore blog posts
+- Reset password via email with Brevo
+- Protected routes using JWT
+- reCAPTCHA on signup and reset
 
 👑 Admins
 
-Full dashboard access
-Manage users (soft delete/restore)
-Review & manage all blog posts
-View audit logs of system actions
+- Full dashboard access
+- Manage users (soft delete/restore)
+- Review & manage all blog posts
+- View audit logs of system actions
 
 ---
 
 📡 API Endpoints
-Base URL: https://blogify-press-server.onrender.com/api/v1
+- Base URL: https://blogify-press-server.onrender.com/api/v1
 
 📘 Blog Routes
 Method	Endpoint	             Description
@@ -166,14 +166,16 @@ GET	    /users	                 Get all users (admin only)
 ---
 
 📜 License
-Licensed under the MIT License
+
+- Licensed under the MIT License
 
 ---
 
 📬 Contact
-email: hugoflorentino86@hotmail.com
-LinkedIn: https://www.linkedin.com/in/hugo-florentino-892b61369/
-Reach me on GitHub 
+
+- email: hugoflorentino86@hotmail.com
+- LinkedIn: https://www.linkedin.com/in/hugo-florentino-892b61369/
+- Reach me on GitHub 
 
 
 
