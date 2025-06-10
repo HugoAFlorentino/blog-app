@@ -51,7 +51,8 @@
 ![User Dashboard](https://github.com/user-attachments/assets/fbffc0e7-d44f-409a-88ba-6ee272c277dd)
 
 ### 📝 Admin – Posts Dashboard  
-![Posts Dashboard](https://github.com/user-attachments/assets/b9dd6738-94be-4cda-b32b-da00a2026fdd)
+![dashboard-posts](https://github.com/user-attachments/assets/2228acd7-507f-4278-b3be-6d63b3060a21)
+
 
 ---
 
