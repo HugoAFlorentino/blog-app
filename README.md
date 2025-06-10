@@ -148,7 +148,7 @@ Ensure you create `.env` files in both your `backend/` and `frontend/` directori
 
 ### Frontend Frontend (`frontend/.env`)
 
-VITE_API_BASE_URL
+VITE_API_BASE_URL <br/>
 VITE_RECAPTCHA_SITE_KEY
 
 ### Backend (`backend/.env`) 
