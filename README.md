@@ -146,7 +146,12 @@ Follow these steps to get Blogify Press up and running on your local machine.
 
 Ensure you create `.env` files in both your `backend/` and `frontend/` directories with the following variables:
 
-### Backend (`backend/.env`)
+### Frontend Frontend (`frontend/.env`)
+
+VITE_API_BASE_URL
+VITE_RECAPTCHA_SITE_KEY
+
+### Backend (`backend/.env`) 
 
 ```ini
 NODE_ENV=development
@@ -160,9 +165,5 @@ FRONTEND_URL=http://localhost:5173 # Or your deployed frontend URL
 SITE_KEY=your_recaptcha_site_key # Google reCAPTCHA site key
 SECRET_KEY=your_recaptcha_secret_key # Google reCAPTCHA secret key
 
-### Frontend (`frontend/.env`)
 
-```ini
-VITE_API_BASE_URL
-VITE_RECAPTCHA_SITE_KEY
 
