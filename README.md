@@ -80,9 +80,9 @@
 
 ### 🔙 Backend
 
-git clone https://github.com/HugoAFlorentino/blog-app.git
-cd blog-app/backend
-npm install
+- git clone https://github.com/HugoAFlorentino/blog-app.git
+- cd blog-app/backend
+- npm install
 
 ---
 🧩 Backend Environment Variables (used directly in app config):
@@ -143,25 +143,25 @@ Start frontend:
 - Base URL: https://blogify-press-server.onrender.com/api/v1
 
 📘 Blog Routes
-Method	Endpoint	             Description
-GET	    /blog	                 Get all blog posts
-GET	    /blog/:id	             Get a single post
-GET	    /blog/user/:userId	   Get posts by user
-POST	  /blog	                 Create new post
-PATCH	  /blog/:id	             Update a post
-PATCH	  /blog/restore/:id	     Restore a soft-deleted post
+- Method	Endpoint	             Description
+- GET	    /blog	                 Get all blog posts
+- GET	    /blog/:id	             Get a single post
+- GET	    /blog/user/:userId	   Get posts by user
+- POST	  /blog	                 Create new post
+- PATCH	  /blog/:id	             Update a post
+- PATCH	  /blog/restore/:id	     Restore a soft-deleted post
 
 👥 User Routes
-Method	Endpoint	               Description
-POST	  /users/signup	           Register user
-POST	  /users/signin	           Login user
-POST	  /users/logout	           Logout user
-GET	    /users/refresh	         Refresh JWT token
-PATCH	  /users/profile/update	   Update profile
-PATCH	  /users/change-password	 Change password
-PATCH	  /users/delete/:id	       Soft delete user
-PATCH	  /users/restore/:id	     Restore soft-deleted user
-GET	    /users	                 Get all users (admin only)
+- Method	Endpoint	               Description
+- POST	  /users/signup	           Register user
+- POST	  /users/signin	           Login user
+- POST	  /users/logout	           Logout user
+- GET	    /users/refresh	         Refresh JWT token
+- PATCH	  /users/profile/update	   Update profile
+- PATCH	  /users/change-password	 Change password
+- PATCH	  /users/delete/:id	       Soft delete user
+- PATCH	  /users/restore/:id	     Restore soft-deleted user
+- GET	    /users	                 Get all users (admin only)
 
 ---
 
