@@ -62,16 +62,18 @@ Experience Blogify Press live: [https://your-live-demo-url.com](https://your-liv
 Explore the user interface and administrative panels of Blogify Press.
 
 ### Landing Page
-![Landing Page][landing]https://github.com/user-attachments/assets/00f1ad90-533f-43db-a492-0c279b4ba661
-pg)
+https://github.com/user-attachments/assets/00f1ad90-533f-43db-a492-0c279b4ba661
+
 
 ### User Management Dashboard
 *(Admin View)*
-![User Management Dashboard](dashboard-users.png)
+https://github.com/user-attachments/assets/fbffc0e7-d44f-409a-88ba-6ee272c277dd
+
 
 ### Blog Posts Dashboard
 *(Admin View)*
-![Blog Posts Dashboard](dashboard-posts.png)
+https://github.com/user-attachments/assets/b9dd6738-94be-4cda-b32b-da00a2026fdd
+
 
 
 ## Tech Stack
