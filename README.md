@@ -53,6 +53,9 @@
 ### 📝 Admin – Posts Dashboard  
 ![dashboard-posts](https://github.com/user-attachments/assets/2228acd7-507f-4278-b3be-6d63b3060a21)
 
+### 📑 Admin - Logs
+![logs](https://github.com/user-attachments/assets/4dc6838b-acbc-4bad-811c-f406125b8fcc)
+
 
 ---
 
