@@ -62,7 +62,8 @@ Experience Blogify Press live: [https://your-live-demo-url.com](https://your-liv
 Explore the user interface and administrative panels of Blogify Press.
 
 ### Landing Page
-![Landing Page](landing.jpg)
+![Landing Page][landing]https://github.com/user-attachments/assets/00f1ad90-533f-43db-a492-0c279b4ba661
+pg)
 
 ### User Management Dashboard
 *(Admin View)*
@@ -107,7 +108,7 @@ Follow these steps to get Blogify Press up and running on your local machine.
 
 1.  **Clone the repository:**
     ```bash
-    git clone YOUR_REPO_URL_HERE # Replace with your actual repository URL
+    git clone https://github.com/HugoAFlorentino/blog-app/tree/main/project-root
     cd backend
     ```
 2.  **Install dependencies:**
