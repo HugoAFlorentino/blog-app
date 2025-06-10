@@ -159,3 +159,10 @@ BREVO_SENDER_EMAIL=your_email@example.com # Use a verified sender email for Brev
 FRONTEND_URL=http://localhost:5173 # Or your deployed frontend URL
 SITE_KEY=your_recaptcha_site_key # Google reCAPTCHA site key
 SECRET_KEY=your_recaptcha_secret_key # Google reCAPTCHA secret key
+
+### Frontend (`frontend/.env`)
+
+```ini
+VITE_API_BASE_URL
+VITE_RECAPTCHA_SITE_KEY
+
