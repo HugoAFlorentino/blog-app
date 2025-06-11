@@ -2,10 +2,27 @@ import Log from '../models/Log.js';
 
 export const getLogs = async (req, res) => {
   try {
-    // Fetch last 50 logs, sorted by newest first
-    const logs = await Log.find().sort({ createdAt: -1 }).limit(50).lean();
+    // Parse page and limit from query params, default to page 1, limit 50
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
 
-    res.json(logs);
+    // Fetch logs with pagination, newest first
+    const logs = await Log.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Get total count for pagination
+    const totalLogs = await Log.countDocuments();
+
+    res.json({
+      logs,
+      currentPage: page,
+      totalPages: Math.ceil(totalLogs / limit),
+      totalLogs,
+    });
   } catch (error) {
     console.error('Error fetching logs:', error);
     res.status(500).json({ message: 'Failed to fetch logs' });

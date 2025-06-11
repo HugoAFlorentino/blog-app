@@ -3,13 +3,15 @@ import api from '../utils/axios';
 
 export const fetchLogs = createAsyncThunk(
   'logs/fetchLogs',
-  async (_, thunkAPI) => {
+  async ({ page = 1, limit = 50 } = {}, thunkAPI) => {
     try {
-      const response = await api.get('/logs');
+      const response = await api.get('/logs', {
+        params: { page, limit },
+      });
       return response.data;
     } catch (err) {
       const message =
-        err.response?.data?.error || err.message || 'Something went wrong';
+        err.response?.data?.message || err.message || 'Something went wrong';
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -21,6 +23,9 @@ const logsSlice = createSlice({
     items: [],
     status: 'idle',
     error: null,
+    currentPage: 1,
+    totalPages: 1,
+    totalLogs: 0,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -30,7 +35,10 @@ const logsSlice = createSlice({
       })
       .addCase(fetchLogs.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.items = action.payload;
+        state.items = action.payload.logs;
+        state.currentPage = action.payload.currentPage;
+        state.totalPages = action.payload.totalPages;
+        state.totalLogs = action.payload.totalLogs;
       })
       .addCase(fetchLogs.rejected, (state, action) => {
         state.status = 'failed';
