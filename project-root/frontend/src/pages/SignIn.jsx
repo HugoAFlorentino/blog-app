@@ -58,7 +58,6 @@ const SignIn = () => {
     }
   }, [currentUser, navigate]);
 
-  // Show toast only after user submits and if there is an error
   useEffect(() => {
     if (error && hasSubmitted) {
       toast.error(error);

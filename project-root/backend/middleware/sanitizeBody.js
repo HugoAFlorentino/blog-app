@@ -1,6 +1,6 @@
 import xss from 'xss';
 
-// Recursively sanitize all string fields in an object
+// sanitize all string fields in an object
 function sanitizeObject(obj) {
   for (const key in obj) {
     if (typeof obj[key] === 'string') {
@@ -11,7 +11,7 @@ function sanitizeObject(obj) {
   }
 }
 
-// Middleware for sanitizing req.body (not query)
+// Middleware for sanitizing
 function sanitizeBody(req, res, next) {
   if (req.body) {
     sanitizeObject(req.body);

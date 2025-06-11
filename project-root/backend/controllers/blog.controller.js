@@ -2,11 +2,9 @@ import mongoose from 'mongoose';
 import Blog from '../models/Blog.js';
 import logActivity from '../utils/logActivity.js';
 
-// ----------------------------------------------
 // CREATE POST (with demo user content enforcement)
-// ----------------------------------------------
+
 export const createPost = async (req, res) => {
-  // Demo template to enforce for demo users
   const demoPostTemplate = {
     title: 'Demo Title by User',
     body: 'This is a predefined demo post content to simulate a user-generated blog post.',
@@ -15,7 +13,6 @@ export const createPost = async (req, res) => {
   try {
     const isDemoUser = req.user?.isDemoUser;
 
-    // Use template if demo user, else use req.body values
     const title = isDemoUser ? demoPostTemplate.title : req.body.title;
     const body = isDemoUser ? demoPostTemplate.body : req.body.body;
 
@@ -89,11 +86,9 @@ export const createPost = async (req, res) => {
 };
 */
 
-// ----------------------------------------------
 // UPDATE POST (with demo user content enforcement)
-// ----------------------------------------------
+
 export const patchPost = async (req, res) => {
-  // Demo template for demo users
   const demoPostTemplate = {
     title: 'Demo Title by User',
     body: 'This is a predefined demo post content to simulate a user-generated blog post.',
@@ -104,18 +99,15 @@ export const patchPost = async (req, res) => {
   try {
     const isDemoUser = req.user?.isDemoUser;
 
-    // For demo users, override title and body with template even if user sends something else
     const title = isDemoUser ? demoPostTemplate.title : req.body.title;
     const body = isDemoUser ? demoPostTemplate.body : req.body.body;
 
-    // Require at least one field (title or body) after override
     if (!title && !body) {
       return res
         .status(400)
         .json({ error: 'At least one field (title or body) must be provided' });
     }
 
-    // If both title and body are provided (and user is NOT demo), check duplicates
     if (!isDemoUser && title && body) {
       const existingPost = await Blog.findOne({
         title,
@@ -211,10 +203,6 @@ export const patchPost = async (req, res) => {
   }
 };
 */
-
-// -------------------
-// THE REST REMAINS SAME
-// -------------------
 
 export const getPosts = async (req, res) => {
   try {

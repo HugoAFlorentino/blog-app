@@ -21,7 +21,7 @@ const sendEmail = async (to, subject, html) => {
       }
     );
 
-    return response.data; // Brevo's response with messageId etc.
+    return response.data;
   } catch (error) {
     console.error(
       'Brevo API send error:',

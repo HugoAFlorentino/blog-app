@@ -16,7 +16,6 @@ const verifyRecaptcha = async (token) => {
       }
     );
 
-    // response.data.success will be true if valid
     return response.data;
   } catch (error) {
     console.error('reCAPTCHA verification error:', error);

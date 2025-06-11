@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import React from 'react';
 
+=======
+>>>>>>> 2c6fc993575dbc0e00e991b45f3c3e4a984d42cc
 const LogsTable = ({
   logs,
   logsStatus,
@@ -32,11 +35,31 @@ const LogsTable = ({
         <table className='min-w-full divide-y divide-primary table-auto'>
           <thead className='bg-primary/10'>
             <tr>
+<<<<<<< HEAD
               <th className='px-4 py-3 text-left text-sm font-semibold text-primary w-1/4'>
                 Action
               </th>
               <th className='px-4 py-3 text-left text-sm font-semibold text-primary w-1/4'>
                 Message
+=======
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                Action
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                User ID
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                Blog ID
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                User Agent
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                IP
+              </th>
+              <th className='px-6 py-3 text-left text-sm font-semibold text-primary'>
+                Details
+>>>>>>> 2c6fc993575dbc0e00e991b45f3c3e4a984d42cc
               </th>
               <th className='px-4 py-3 text-left text-sm font-semibold text-primary w-1/5'>
                 User Agent
@@ -52,7 +75,11 @@ const LogsTable = ({
           <tbody className='divide-y divide-primary'>
             {logs.length === 0 && (
               <tr>
+<<<<<<< HEAD
                 <td colSpan='5' className='text-center py-6 text-secondary'>
+=======
+                <td colSpan='7' className='text-center py-6 text-secondary'>
+>>>>>>> 2c6fc993575dbc0e00e991b45f3c3e4a984d42cc
                   No logs to display.
                 </td>
               </tr>
@@ -62,6 +89,7 @@ const LogsTable = ({
 
               return (
                 <tr key={logId} className='hover:bg-primary transition-colors'>
+<<<<<<< HEAD
                   <td className='px-4 py-3 whitespace-nowrap font-semibold'>
                     {log.action || 'N/A'}
                   </td>
@@ -81,6 +109,23 @@ const LogsTable = ({
                     {log.ip || '-'}
                   </td>
                   <td className='px-4 py-3 whitespace-nowrap'>
+=======
+                  <td className='px-6 py-4 whitespace-nowrap'>{log.action}</td>
+                  <td className='px-6 py-4 whitespace-nowrap'>{log.userId}</td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+                    {log.blogId || '-'}
+                  </td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+                    {log.userAgent || '-'}
+                  </td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+                    {log.ip || '-'}
+                  </td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+                    {log.details ? JSON.stringify(log.details) : '-'}
+                  </td>
+                  <td className='px-6 py-4 whitespace-nowrap'>
+>>>>>>> 2c6fc993575dbc0e00e991b45f3c3e4a984d42cc
                     {new Date(log.createdAt).toLocaleString()}
                   </td>
                 </tr>

@@ -1,4 +1,3 @@
-// sendThankYouEmail.js
 import axios from 'axios';
 import { BREVO_API_KEY, BREVO_SENDER_EMAIL } from '../config/env.config.js';
 

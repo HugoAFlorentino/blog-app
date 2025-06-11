@@ -186,7 +186,7 @@ const Dashboard = () => {
   );
 };
 
-// Pagination controls component
+// Pagination controls
 const PaginationControls = ({ currentPage, totalPages, onPrev, onNext }) => (
   <div className='flex justify-between items-center max-w-sm mx-auto mb-10'>
     <button
@@ -209,7 +209,7 @@ const PaginationControls = ({ currentPage, totalPages, onPrev, onNext }) => (
   </div>
 );
 
-// Stats card component
+// Stats card
 const StatsCard = ({ label, value, accent = false }) => (
   <div
     className={`bg-white dark:bg-neutral rounded-xl shadow-lg p-8 w-64 text-center ${

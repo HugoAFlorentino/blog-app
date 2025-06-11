@@ -562,7 +562,6 @@ export const restoreUser = async (req, res) => {
 // GET USERS
 export const getUsers = async (req, res) => {
   try {
-    // Check query param includeDeleted (string 'true' or 'false')
     const includeDeleted = req.query.includeDeleted === 'true';
 
     const filter = includeDeleted ? {} : { isDeleted: false };

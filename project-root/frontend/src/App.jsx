@@ -1,4 +1,3 @@
-// App.js
 import React, { useEffect, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -6,8 +5,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { refreshUser } from './redux/userSlice.js';
 
-// Lazy load all pages
-const Landing = React.lazy(() => import('./pages/Landing'));
+import { Landing } from './pages/index.js';
+import { Layout } from './components/index.js';
 const Blogs = React.lazy(() => import('./pages/Blogs'));
 const News = React.lazy(() => import('./pages/News'));
 const CreatePost = React.lazy(() => import('./pages/CreatePost'));
@@ -21,7 +20,6 @@ const SignIn = React.lazy(() => import('./pages/SignIn'));
 const SignUp = React.lazy(() => import('./pages/SignUp'));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
-const Layout = React.lazy(() => import('./components/Layout'));
 
 const router = createBrowserRouter([
   {
@@ -52,9 +50,7 @@ const App = () => {
   const authChecked = useSelector((state) => state.user.authChecked);
 
   useEffect(() => {
-    dispatch(refreshUser()).catch(() => {
-      // silent fail
-    });
+    dispatch(refreshUser()).catch(() => {});
   }, [dispatch]);
 
   if (!authChecked) {

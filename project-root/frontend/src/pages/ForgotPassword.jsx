@@ -11,7 +11,6 @@ const ForgotPassword = () => {
 
   const { loading, error, message } = useSelector((state) => state.user);
 
-  // Clear messages when email changes, but keep submitted status until user navigates
   useEffect(() => {
     dispatch(clearMessage());
   }, [email, dispatch]);

@@ -1,4 +1,3 @@
-// src/components/Dashboard/PostsTable.jsx
 import React from 'react';
 
 const PostsTable = ({
