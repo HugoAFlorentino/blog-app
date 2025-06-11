@@ -57,7 +57,7 @@ const App = () => {
     return (
       <div className='flex justify-center items-center min-h-screen'>
         <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'></div>
-        <p className='text-text text-xl'>
+        <p className='ml-4 text-text text-xl'>
           Waking up the server... Please wait.
         </p>
       </div>
@@ -70,7 +70,7 @@ const App = () => {
         fallback={
           <div className='flex justify-center items-center min-h-screen'>
             <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'></div>
-            <p className='text-text text-xl'>
+            <p className='ml-4 text-text text-xl'>
               Waking up the server... Please wait.
             </p>
           </div>
