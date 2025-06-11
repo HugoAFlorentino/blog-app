@@ -66,9 +66,10 @@ const App = () => {
       <Suspense
         fallback={
           <div className='flex justify-center items-center min-h-screen'>
-            <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'>
+            <div className='w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin'></div>
+            <p className='text-text text-xl flex justify-center items-center mt-4'>
               Waking up the servers...free tier render yey
-            </div>
+            </p>
           </div>
         }
       >
