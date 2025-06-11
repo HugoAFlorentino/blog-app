@@ -1,6 +1,6 @@
 const logSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  action: { type: String, required: true }, // e.g., 'CREATE_BLOG', 'LOGIN', etc.
+  action: { type: String, required: true },
   blogId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Blog',
@@ -17,11 +17,15 @@ const logSchema = new mongoose.Schema({
     enum: ['success', 'failure', 'info'],
     default: 'info',
   },
-  message: { type: String, required: true }, // human-readable description
-  referrer: { type: String }, // where the request came from (optional)
+  message: { type: String, required: true },
+  referrer: { type: String },
   method: {
     type: String,
     enum: ['GET', 'POST', 'PUT', 'DELETE'],
     required: false,
   },
 });
+
+const Log = mongoose.model('Log', logSchema);
+
+export default Log;
